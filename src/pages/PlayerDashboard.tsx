@@ -4,10 +4,8 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, MapPin, Users, Star, Clock, ArrowRight, Search } from 'lucide-react'
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+ import { Calendar, MapPin, Users, Star, Clock, ArrowRight, Search } from 'lucide-react'
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function PlayerDashboard() {
   const [activeTab, setActiveTab] = useState('upcoming')

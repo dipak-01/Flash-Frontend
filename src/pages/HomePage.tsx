@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Calendar, MapPin, Users, Search } from "lucide-react";
-import Header from "@/components/scratch/Header";
+ 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">

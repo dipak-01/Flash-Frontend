@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, DollarSign, Star, Users, Calendar } from 'lucide-react'
+import { MapPin, DollarSign, Star } from 'lucide-react'
 
 const venues = [
   { id: 1, name: 'City Sports Complex', location: 'Downtown', sports: ['Soccer', 'Basketball', 'Tennis'], price: 50, rating: 4.5, availability: 'High' },

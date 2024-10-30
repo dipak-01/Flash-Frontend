@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
 import { MapPin, DollarSign, Star, Users, Clock, Phone, Mail, Calendar as CalendarIcon } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export default function VenueDetailPage({ params=1 }: { params: { id: string } }) {
   const [date, setDate] = useState<Date | undefined>(new Date())

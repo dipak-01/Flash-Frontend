@@ -21,15 +21,8 @@ import {
   ArrowRight,
   BarChart2,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+ 
 
 export default function VenueOwnerDashboard() {
   const [activeTab, setActiveTab] = useState("upcoming");

@@ -1,4 +1,3 @@
-'use client'
 
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
@@ -8,11 +7,25 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { User, Building, Mail, Lock, Phone, MapPin } from 'lucide-react'
+import { User, Building,   } from 'lucide-react'
+
+interface FormData {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  phoneNumber: string;
+  dateOfBirth: string;
+  preferredSports: string[];
+  venueName: string;
+  venueAddress: string;
+  venueType: string;
+  agreeToTerms: boolean;
+}
 
 export default function SignupPage() {
   const [userType, setUserType] = useState('player')
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
     password: '',
@@ -23,22 +36,24 @@ export default function SignupPage() {
     venueName: '',
     venueAddress: '',
     venueType: '',
-    agreeToTerms: false
+    agreeToTerms: false,
   })
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleSportsChange = (sport) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      preferredSports: prev.preferredSports.includes(sport)
-        ? prev.preferredSports.filter(s => s !== sport)
-        : [...prev.preferredSports, sport]
-    }))
-  }
+      [name]: value,
+    }));
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: checked,
+    }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault()
