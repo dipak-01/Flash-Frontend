@@ -21,9 +21,9 @@ export default function App() {
         <Route path="/player-profile" element={<PlayerDashboard />} />
         <Route path="/venue-owner-profile" element={<VenueOwnerDashboard />} />
         <Route path="/user-profile" element={<UserProfilePage />} />
-        <Route path="/venue-details" element={<VenueDetailsPage />} />
+        <Route path="/venue-details/:id" element={<VenueDetailsPage params={{ id: "1" }} />} />
         <Route path="/venue-listing" element={<VenueListingPage />} />
-        <Route path="/group-chat" element={<GroupChatPage />} />
+        <Route path="/group-chat/:id" element={<GroupChatPage params={{ id: "1" }} />} />
       </Routes>
     </Router>
   );

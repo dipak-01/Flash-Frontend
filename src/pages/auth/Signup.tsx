@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { User, Building,   } from 'lucide-react'
+import { User, Building } from 'lucide-react'
 
 interface FormData {
   fullName: string;
@@ -55,12 +54,6 @@ export default function SignupPage() {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Here you would typically send the data to your backend
-    console.log(formData)
-    // Implement form validation and submission logic
-  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
