@@ -1,20 +1,23 @@
 'use client'
 
+
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
-import { MapPin, DollarSign, Star, Users, Clock, Phone, Mail, Calendar as CalendarIcon } from 'lucide-react'
+import { MapPin, DollarSign, Star } from 'lucide-react' // Removed unused imports: Users, Clock, Phone, Mail
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useParams } from "react-router-dom" // Added to replace params prop
 
-export default function VenueDetailPage({ params=1 }: { params: { id: string } }) {
+export default function VenueDetailPage() {
+  const { id } = useParams<{ id: string }>() // Accessing params via useParams hook
   const [date, setDate] = useState<Date | undefined>(new Date())
 
   // Mock venue data
   const venue = {
-    id: params.id,
+    id:id,
     name: 'City Sports Complex',
     location: '123 Main St, Cityville',
     sports: ['Soccer', 'Basketball', 'Tennis'],
@@ -62,11 +65,11 @@ export default function VenueDetailPage({ params=1 }: { params: { id: string } }
                   <span>{venue.rating} Rating</span>
                 </div>
                 <div className="flex items-center">
-                  <Users className="h-5 w-5 mr-2 text-gray-500" />
+                  <p className="h-5 w-5 mr-2 text-gray-500" />
                   <span>Capacity: {venue.capacity} people</span>
                 </div>
                 <div className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-gray-500" />
+                  <p className="h-5 w-5 mr-2 text-gray-500" />
                   <span>{venue.openingHours}</span>
                 </div>
               </div>
@@ -163,10 +166,10 @@ export default function VenueDetailPage({ params=1 }: { params: { id: string } }
           <CardContent>
             <div className="space-y-2">
               <p className="flex items-center">
-                <Phone className="mr-2 h-5 w-5 text-gray-500" /> {venue.contactPhone}
+                <p className="mr-2 h-5 w-5 text-gray-500" /> {venue.contactPhone}
               </p>
               <p className="flex items-center">
-                <Mail  className="mr-2 h-5 w-5 text-gray-500" /> {venue.contactEmail}
+                <p  className="mr-2 h-5 w-5 text-gray-500" /> {venue.contactEmail}
               </p>
             </div>
           </CardContent>

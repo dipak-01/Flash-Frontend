@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Calendar,
-  MapPin,
+ 
   Users,
   DollarSign,
   Clock,
@@ -25,7 +25,7 @@ import {
  
 
 export default function VenueOwnerDashboard() {
-  const [activeTab, setActiveTab] = useState("upcoming");
+  // const [activeTab, setActiveTab] = useState("upcoming");
 
   const venues = [
     {

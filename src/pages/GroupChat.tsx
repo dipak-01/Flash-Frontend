@@ -15,8 +15,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDays, Send, Users, Settings, PlusCircle } from "lucide-react";
+import { useParams } from "react-router-dom";
 
-export default function GroupChatPage({ params }: { params: { id: string } }) {
+export default function GroupChatPage() {
+  const { id } = useParams<{ id: string }>();
+
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -71,6 +74,8 @@ export default function GroupChatPage({ params }: { params: { id: string } }) {
         <Card className="md:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-2xl font-bold">
+            <h1>Group Chat ID: {id}</h1>
+
               {groupInfo.name}
             </CardTitle>
             <Badge variant="secondary">{groupInfo.sport}</Badge>

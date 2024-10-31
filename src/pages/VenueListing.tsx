@@ -26,7 +26,7 @@ export default function VenueListingPage() {
     availability: ''
   })
 
-  const handleFilterChange = (key, value) => {
+  const handleFilterChange = (key:string, value:number[]|string) => {
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
     

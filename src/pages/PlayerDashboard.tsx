@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+// import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function PlayerDashboard() {
-  const [activeTab, setActiveTab] = useState('upcoming')
+  // const [activeTab, setActiveTab] = useState('upcoming')
 
   const upcomingEvents = [
     { id: 1, name: 'Soccer Match', date: '2023-07-15', time: '14:00', location: 'City Park', participants: 22 },
