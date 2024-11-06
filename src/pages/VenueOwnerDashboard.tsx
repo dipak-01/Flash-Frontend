@@ -1,6 +1,6 @@
 "use client";
 
-// import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,71 +14,76 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Calendar,
- 
   Users,
   DollarSign,
   Clock,
   ArrowRight,
   BarChart2,
 } from "lucide-react";
- import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
- 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export default function VenueOwnerDashboard() {
-  // const [activeTab, setActiveTab] = useState("upcoming");
+  const [owner, setOwner] = useState<Owner | null>(null);
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [upcomingBookings] = useState<Booking[]>([]);
+  const [pastBookings] = useState<Booking[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newSlot, setNewSlot] = useState({ time: "", date: "", slotSize: "" });
+  const [selectedPlaygroundId, setSelectedPlaygroundId] = useState<string | null>(null);
 
-  const venues = [
-    {
-      id: 1,
-      name: "City Sports Complex",
-      location: "Downtown",
-      sports: ["Soccer", "Basketball"],
-    },
-    {
-      id: 2,
-      name: "Green Field Park",
-      location: "Suburb",
-      sports: ["Soccer", "Tennis"],
-    },
-  ];
+  useEffect(() => {
+    async function fetchOwnerDetails() {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/owner/profile`);
+      const data = await response.json();
+      setOwner(data[0]);
+      console.log(data);
+    }
 
-  const upcomingBookings = [
-    {
-      id: 1,
-      venue: "City Sports Complex",
-      sport: "Soccer",
-      date: "2023-07-15",
-      time: "14:00-16:00",
-      participants: 22,
-    },
-    {
-      id: 2,
-      venue: "Green Field Park",
-      sport: "Tennis",
-      date: "2023-07-18",
-      time: "10:00-12:00",
-      participants: 4,
-    },
-  ];
+    async function fetchVenues() {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/playground/owner?id=672a0e70727bb1402e0040e5`);
+      const data = await response.json();
+      setVenues(data.result);
+    }
 
-  const pastBookings = [
-    {
-      id: 3,
-      venue: "City Sports Complex",
-      sport: "Basketball",
-      date: "2023-07-10",
-      time: "18:00-20:00",
-      participants: 10,
-    },
-    {
-      id: 4,
-      venue: "Green Field Park",
-      sport: "Soccer",
-      date: "2023-07-08",
-      time: "16:00-18:00",
-      participants: 22,
-    },
-  ];
+    fetchOwnerDetails();
+    fetchVenues();
+  }, []);
+
+  interface Owner {
+    name: string;
+  }
+
+  interface Venue {
+    _id: string;
+    name: string;
+    location: string;
+  }
+
+  interface Booking {
+    id: string;
+    venue: string;
+    sport: string;
+    date: string;
+    time: string;
+    participants: number;
+  }
+
+  const handleAddSlot = async (): Promise<void> => {
+    if (!selectedPlaygroundId) return;
+
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/slot/new?playgroundId=${selectedPlaygroundId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newSlot),
+    });
+    const data = await response.json();
+    console.log(data);
+    setIsDialogOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -87,10 +92,10 @@ export default function VenueOwnerDashboard() {
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16">
               <AvatarImage src="/placeholder.svg" alt="Venue Owner" />
-              <AvatarFallback>JS</AvatarFallback>
+              <AvatarFallback>{owner?.name}</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold">Welcome, Jane Smith</h1>
+              <h1 className="text-2xl font-bold">Welcome, {owner?.name}</h1>
               <p className="text-gray-600">Venue Owner since March 2022</p>
             </div>
           </div>
@@ -194,15 +199,18 @@ export default function VenueOwnerDashboard() {
               <CardContent className="grid gap-4">
                 {venues.map((venue) => (
                   <div
-                    key={venue.id}
+                    key={venue._id}
                     className="flex justify-between items-center"
                   >
                     <div>
                       <h3 className="font-semibold">{venue.name}</h3>
                       <p className="text-sm text-gray-600">{venue.location}</p>
                     </div>
-                    <Button variant="outline" size="sm">
-                      Manage
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setSelectedPlaygroundId(venue._id);
+                      setIsDialogOpen(true);
+                    }}>
+                      Add Slot
                     </Button>
                   </div>
                 ))}
@@ -251,6 +259,35 @@ export default function VenueOwnerDashboard() {
           </CardFooter>
         </Card>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Slot</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Time"
+              value={newSlot.time}
+              onChange={(e) => setNewSlot({ ...newSlot, time: e.target.value })}
+            />
+            <Input
+              placeholder="Date"
+              value={newSlot.date}
+              onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
+            />
+            <Input
+              placeholder="Slot Size"
+              value={newSlot.slotSize}
+              onChange={(e) => setNewSlot({ ...newSlot, slotSize: e.target.value })}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddSlot}>Add Slot</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

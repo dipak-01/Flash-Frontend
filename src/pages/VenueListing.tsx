@@ -1,30 +1,54 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, DollarSign, Star } from 'lucide-react'
-
-const venues = [
-  { id: 1, name: 'City Sports Complex', location: 'Downtown', sports: ['Soccer', 'Basketball', 'Tennis'], price: 50, rating: 4.5, availability: 'High' },
-  { id: 2, name: 'Green Field Park', location: 'Suburb', sports: ['Soccer', 'Cricket'], price: 30, rating: 4.2, availability: 'Medium' },
-  { id: 3, name: 'Ace Tennis Court', location: 'Westside', sports: ['Tennis'], price: 40, rating: 4.8, availability: 'Low' },
-  { id: 4, name: 'Hoops Arena', location: 'Eastside', sports: ['Basketball'], price: 45, rating: 4.3, availability: 'High' },
-  { id: 5, name: 'Aqua Center', location: 'North End', sports: ['Swimming'], price: 60, rating: 4.7, availability: 'Medium' },
-]
-
+import { MapPin, IndianRupee, Star } from 'lucide-react'
+import axios from 'axios'
+import { Link } from 'react-router-dom'
 export default function VenueListingPage() {
-  const [filteredVenues, setFilteredVenues] = useState(venues)
+  interface Venue {
+    id: string;
+    name: string;
+    location: string;
+    sports: string[];
+    price: number;
+    rating: number;
+    availability: string;
+    imgUrl: string;
+  }
+
+  const [venues, setVenues] = useState<Venue[]>([])
+  const [filteredVenues, setFilteredVenues] = useState<Venue[]>([])
   const [filters, setFilters] = useState({
     location: '',
     sport: '',
-    priceRange: [0, 100],
+    priceRange: [0, 10000],
     availability: ''
   })
+
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/playground/all?page=1`)
+      .then(response => {
+        const fetchedVenues = response.data.result.map((venue: { _id: string; name: string; location: string; sports: string; price: number; imgUrl: string }) => ({
+          id: venue._id,
+          name: venue.name,
+          location: venue.location,
+          sports: venue.sports.split(', '),
+          price: venue.price,
+          rating: 4.5, // Assuming a default rating as it's not provided
+          availability: 'High', // Assuming a default availability as it's not provided
+          imgUrl: venue.imgUrl
+        }))
+        setVenues(fetchedVenues)
+        setFilteredVenues(fetchedVenues)
+      })
+      .catch(error => console.error('Error fetching venues:', error))
+  }, [])
 
   const handleFilterChange = (key:string, value:number[]|string) => {
     const newFilters = { ...filters, [key]: value }
@@ -70,11 +94,11 @@ export default function VenueListingPage() {
                 </SelectContent>
               </Select>
               <div>
-                <label className="text-sm font-medium">Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}</label>
+                <label className="text-sm font-medium">Price Range: {filters.priceRange[0]} - {filters.priceRange[1]}</label>
                 <Slider
                   min={0}
-                  max={100}
-                  step={10}
+                  max={10000}
+                  step={100}
                   value={filters.priceRange}
                   onValueChange={(value) => handleFilterChange('priceRange', value)}
                   className="mt-2"
@@ -97,7 +121,7 @@ export default function VenueListingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVenues.map((venue) => (
             <Card key={venue.id} className="flex flex-col">
-              <img src="/placeholder.svg" alt={venue.name} className="w-full h-48 object-cover rounded-t-lg" />
+              <img src={venue.imgUrl || "/placeholder.svg"} alt={venue.name} className="w-full h-48 object-cover rounded-t-lg" />
               <CardHeader>
                 <CardTitle className="flex justify-between items-start">
                   <span>{venue.name}</span>
@@ -111,7 +135,7 @@ export default function VenueListingPage() {
                   <MapPin className="mr-2 h-4 w-4" /> {venue.location}
                 </p>
                 <p className="flex items-center text-gray-600 mb-2">
-                  <DollarSign className="mr-2 h-4 w-4" /> ${venue.price}/hour
+                  <IndianRupee className="mr-2 h-4 w-4" /> {venue.price}/hour
                 </p>
                 <p className="flex items-center text-yellow-500 mb-2">
                   <Star className="mr-2 h-4 w-4" /> {venue.rating}
@@ -125,8 +149,9 @@ export default function VenueListingPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button className="w-full">View Details</Button>
-              </CardFooter>
+              <Button asChild>
+      <Link to={`/venue-details/${venue.id}`}>View Details</Link>
+    </Button>              </CardFooter>
             </Card>
           ))}
         </div>
