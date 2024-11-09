@@ -1,134 +1,249 @@
-'use client'
+"use client";
 
-// import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
- import { Calendar, MapPin, Users, Star, Clock, ArrowRight, Search } from 'lucide-react'
- import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Star,
+  Clock,
+  ArrowRight,
+  Search,
+} from "lucide-react";
+
+interface Profile {
+  name: string;
+  email: string;
+  joinedDate: string;
+  avatar?: string;
+}
+
+interface Booking {
+  playgroundName: string;
+  playgroundLocation: string;
+  slotDate: string;
+  slotTime: string;
+  players: number;
+  slotSize: number;
+}
 
 export default function PlayerDashboard() {
-  // const [activeTab, setActiveTab] = useState('upcoming')
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const upcomingEvents = [
-    { id: 1, name: 'Soccer Match', date: '2023-07-15', time: '14:00', location: 'City Park', participants: 22 },
-    { id: 2, name: 'Basketball Tournament', date: '2023-07-18', time: '10:00', location: 'Sports Center', participants: 32 },
-  ]
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const [bookingsRes, profileRes] = await Promise.all([
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/player/bookings`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }),
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/player/profile`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }),
+        ]);
 
-  const pastEvents = [
-    { id: 3, name: 'Tennis Practice', date: '2023-07-10', time: '16:00', location: 'Tennis Club', participants: 4 },
-    { id: 4, name: 'Volleyball Game', date: '2023-07-08', time: '18:00', location: 'Beach Arena', participants: 12 },
-  ]
+        if (!bookingsRes.ok || !profileRes.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const [bookingsData, profileData] = await Promise.all([
+          bookingsRes.json(),
+          profileRes.json(),
+        ]);
+
+        setBookings(bookingsData);
+        setProfile(profileData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const recommendedVenues = [
-    { id: 1, name: 'Green Field Stadium', sport: 'Soccer', rating: 4.5, distance: '2.5 miles' },
-    { id: 2, name: 'Central Court', sport: 'Tennis', rating: 4.8, distance: '1.8 miles' },
-    { id: 3, name: 'Aqua Center', sport: 'Swimming', rating: 4.2, distance: '3.2 miles' },
-  ]
+    {
+      id: 1,
+      name: "Green Field Stadium",
+      sport: "Soccer",
+      rating: 4.5,
+      distance: "2.5 miles",
+    },
+    {
+      id: 2,
+      name: "Central Court",
+      sport: "Tennis",
+      rating: 4.8,
+      distance: "1.8 miles",
+    },
+    {
+      id: 3,
+      name: "Aqua Center",
+      sport: "Swimming",
+      rating: 4.2,
+      distance: "3.2 miles",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-[#F8F9FA] p-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="bg-white rounded-lg shadow p-6 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src="/placeholder.svg" alt="Player" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarImage
+                src={profile?.avatar || "/placeholder.svg"}
+                alt={profile?.name || "Player"}
+              />
+              <AvatarFallback>
+                {profile?.name
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("") || "P"}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold">Welcome, John Doe</h1>
-              <p className="text-gray-600">Player since January 2023</p>
-            
+              {isLoading ? (
+                <div className="h-12 flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#FF3B30]"></div>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-bold text-[#111827]">
+                    Welcome, {profile?.name}
+                  </h1>
+                  <p className="text-[#9CA3AF]">
+                    Player since{" "}
+                    {new Date(profile?.joinedDate || "").toLocaleDateString(
+                      "en-US",
+                      { month: "long", year: "numeric" }
+                    )}
+                  </p>
+                </>
+              )}
             </div>
           </div>
-          <Button variant="outline">Edit Profile</Button>
+          <Button
+            variant="outline"
+            className="border-[#000000] text-[#000000] hover:bg-[#000000] hover:text-white transition-all duration-300 ease-in-out hover:scale-105"
+          >
+            Edit Profile
+          </Button>
         </header>
 
         <div className="grid md:grid-cols-3 gap-8">
           <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>Your Events</CardTitle>
-              <CardDescription>Manage your upcoming and past events</CardDescription>
+              <CardTitle className="text-[#111827]">Your Bookings</CardTitle>
+              <CardDescription className="text-[#9CA3AF]">
+                {isLoading
+                  ? "Loading bookings..."
+                  : `${bookings.length} bookings found`}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="upcoming" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                  <TabsTrigger value="past">Past</TabsTrigger>
-                </TabsList>
-                <TabsContent value="upcoming">
-                  {upcomingEvents.map((event) => (
-                    <Card key={event.id} className="mb-4">
-                      <CardHeader>
-                        <CardTitle>{event.name}</CardTitle>
-                        <CardDescription>
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>{event.date} at {event.time}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <MapPin className="h-4 w-4" />
-                            <span>{event.location}</span>
-                          </div>
-                        </CardDescription>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-40">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF3B30]"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {bookings.map((booking: Booking, index: number) => (
+                    <Card
+                      key={index}
+                      className="transition-all duration-300 ease-in-out hover:shadow-lg"
+                    >
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg text-[#111827]">
+                          {booking.playgroundName}
+                        </CardTitle>
+                        <div className="flex items-center space-x-2 text-[#9CA3AF]">
+                          <MapPin className="h-4 w-4" />
+                          <span className="text-sm">
+                            {booking.playgroundLocation}
+                          </span>
+                        </div>
                       </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center space-x-2">
-                          <Users className="h-4 w-4" />
-                          <span>{event.participants} participants</span>
+                      <CardContent className="pb-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-[#9CA3AF]">
+                              <Calendar className="h-4 w-4" />
+                              <span className="text-sm">
+                                {new Date(
+                                  booking.slotDate
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2 text-[#9CA3AF]">
+                              <Clock className="h-4 w-4" />
+                              <span className="text-sm">
+                                {booking.slotTime}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Users className="h-4 w-4 text-[#FF3B30]" />
+                              <span className="text-sm font-medium">
+                                {booking.players}/{booking.slotSize} players
+                              </span>
+                            </div>
+                            <div
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                booking.players === booking.slotSize
+                                  ? "bg-red-100 text-red-600"
+                                  : "bg-green-100 text-green-600"
+                              }`}
+                            >
+                              {booking.players === booking.slotSize
+                                ? "Full"
+                                : "Available"}
+                            </div>
+                          </div>
                         </div>
                       </CardContent>
-                      <CardFooter>
-                        <Button variant="outline">View Details</Button>
-                      </CardFooter>
                     </Card>
                   ))}
-                </TabsContent>
-                <TabsContent value="past">
-                  {pastEvents.map((event) => (
-                    <Card key={event.id} className="mb-4">
-                      <CardHeader>
-                        <CardTitle>{event.name}</CardTitle>
-                        <CardDescription>
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>{event.date} at {event.time}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <MapPin className="h-4 w-4" />
-                            <span>{event.location}</span>
-                          </div>
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center space-x-2">
-                          <Users className="h-4 w-4" />
-                          <span>{event.participants} participants</span>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button variant="outline">View Recap</Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </TabsContent>
-              </Tabs>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           <div className="space-y-8">
             <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="text-[#111827]">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
-                <Button className="w-full">
+                <Button className="w-full bg-[#FFD60A] text-[#111827] hover:bg-[#FFD60A]/90 transition-all duration-300 ease-in-out hover:scale-105">
                   <Calendar className="mr-2 h-4 w-4" /> Create New Event
                 </Button>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90 transition-all duration-300 ease-in-out hover:scale-105">
                   <Search className="mr-2 h-4 w-4" /> Find Nearby Venues
                 </Button>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90 transition-all duration-300 ease-in-out hover:scale-105">
                   <Users className="mr-2 h-4 w-4" /> Join a Team
                 </Button>
               </CardContent>
@@ -136,24 +251,36 @@ export default function PlayerDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Recommended Venues</CardTitle>
+                <CardTitle className="text-[#111827]">
+                  Recommended Venues
+                </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
                 {recommendedVenues.map((venue) => (
-                  <div key={venue.id} className="flex justify-between items-center">
+                  <div
+                    key={venue.id}
+                    className="flex justify-between items-center"
+                  >
                     <div>
-                      <h3 className="font-semibold">{venue.name}</h3>
-                      <p className="text-sm text-gray-600">{venue.sport} • {venue.distance}</p>
+                      <h3 className="font-semibold text-[#111827]">
+                        {venue.name}
+                      </h3>
+                      <p className="text-sm text-[#9CA3AF]">
+                        {venue.sport} • {venue.distance}
+                      </p>
                     </div>
                     <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                      <span>{venue.rating}</span>
+                      <Star className="h-4 w-4 text-[#FFD60A] mr-1" />
+                      <span className="text-[#111827]">{venue.rating}</span>
                     </div>
                   </div>
                 ))}
               </CardContent>
               <CardFooter>
-                <Button variant="link" className="w-full">
+                <Button
+                  variant="link"
+                  className="w-full text-[#FF3B30] hover:text-[#FF3B30]/90 transition-all duration-300 ease-in-out hover:scale-105"
+                >
                   View All Venues <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardFooter>
@@ -163,22 +290,29 @@ export default function PlayerDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Your Activity</CardTitle>
+            <CardTitle className="text-[#111827]">Your Activity</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex space-x-4 overflow-x-auto pb-4">
               {[
-                { icon: Calendar, label: 'Events Attended', value: 12 },
-                { icon: Users, label: 'Teams Joined', value: 3 },
-                { icon: MapPin, label: 'Venues Visited', value: 8 },
-                { icon: Star, label: 'Average Rating', value: '4.7' },
-                { icon: Clock, label: 'Hours Played', value: 36 },
+                { icon: Calendar, label: "Events Attended", value: 12 },
+                { icon: Users, label: "Teams Joined", value: 3 },
+                { icon: MapPin, label: "Venues Visited", value: 8 },
+                { icon: Star, label: "Average Rating", value: "4.7" },
+                { icon: Clock, label: "Hours Played", value: 36 },
               ].map((stat, index) => (
-                <Card key={index} className="flex-shrink-0 w-40">
+                <Card
+                  key={index}
+                  className="flex-shrink-0 w-40 transition-all duration-300 ease-in-out hover:shadow-lg"
+                >
                   <CardContent className="p-4 text-center">
-                    <stat.icon className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <stat.icon className="h-8 w-8 mx-auto mb-2 text-[#FF3B30]" />
+                    <p className="text-sm font-medium text-[#9CA3AF]">
+                      {stat.label}
+                    </p>
+                    <p className="text-2xl font-bold text-[#111827]">
+                      {stat.value}
+                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -187,5 +321,5 @@ export default function PlayerDashboard() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

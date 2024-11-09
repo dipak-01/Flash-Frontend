@@ -276,7 +276,7 @@ async function fetchSlots(playgroundId: string) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-[#F8F9FA] p-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="bg-white rounded-lg shadow p-6 flex justify-between items-center">
           <div className="flex items-center space-x-4">
@@ -285,18 +285,18 @@ async function fetchSlots(playgroundId: string) {
               <AvatarFallback>{owner?.name}</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold">Welcome, {owner?.name}</h1>
+              <h1 className="text-2xl font-bold text-[#111827]">Welcome, {owner?.name}</h1>
               <p className="text-gray-600">Venue Owner since March 2022</p>
             </div>
           </div>
-          <Button onClick={() => setIsAddVenueDialogOpen(true)}>Add New Venue</Button>
+          <Button className="bg-[#FFD60A] text-[#111827] hover:bg-[#FFC107]/90" onClick={() => setIsAddVenueDialogOpen(true)}>Add New Venue</Button>
         </header>
 
         <div className="space-y-8">
-          <Card className="shadow-lg rounded-lg">
+          <Card className="shadow-lg rounded-lg bg-white">
             <CardHeader>
-              <CardTitle className="text-3xl font-bold">Bookings</CardTitle>
-              <CardDescription className="text-lg">
+              <CardTitle className="text-3xl font-bold text-[#111827]">Bookings</CardTitle>
+              <CardDescription className="text-lg text-[#111827]">
                 Manage your upcoming and past bookings
               </CardDescription>
             </CardHeader>
@@ -309,7 +309,7 @@ async function fetchSlots(playgroundId: string) {
                 <TabsContent value="upcoming">
   {Object.keys(allBookings).map((playgroundId) => (
     <div key={playgroundId} className="space-y-6">
-      <h3 className="font-semibold text-xl text-primary mt-4">{venues.find(v => v._id === playgroundId)?.name}</h3>
+      <h3 className="font-semibold text-xl text-[#111827] mt-4">{venues.find(v => v._id === playgroundId)?.name}</h3>
       {allBookings[playgroundId].upcoming.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {allBookings[playgroundId].upcoming.map((booking) => (
@@ -358,7 +358,7 @@ async function fetchSlots(playgroundId: string) {
 <TabsContent value="past">
   {Object.keys(allBookings).map((playgroundId) => (
     <div key={playgroundId} className="space-y-6">
-      <h3 className="font-semibold text-xl text-primary mt-4">{venues.find(v => v._id === playgroundId)?.name}</h3>
+      <h3 className="font-semibold text-xl text-[#111827] mt-4">{venues.find(v => v._id === playgroundId)?.name}</h3>
       {allBookings[playgroundId].past.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {allBookings[playgroundId].past.map((booking) => (
@@ -425,6 +425,7 @@ async function fetchSlots(playgroundId: string) {
                       <Button
                         variant="outline"
                         size="sm"
+                        className="border-[#FF3B30] text-[#FF3B30] hover:bg-[#FF3B30]/10"
                         onClick={() => {
                           setVenueToUpdate(venue);
                           setIsUpdateVenueDialogOpen(true);
@@ -554,7 +555,7 @@ async function fetchSlots(playgroundId: string) {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={handleAddVenue}>Add Venue</Button>
+            <Button className="bg-[#FFD60A] text-[#111827] hover:bg-[#FFC107]/90" onClick={handleAddVenue}>Add Venue</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -583,7 +584,7 @@ async function fetchSlots(playgroundId: string) {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={handleUpdateVenue}>Update Venue</Button>
+            <Button className="bg-[#FFD60A] text-[#111827] hover:bg-[#FFC107]/90" onClick={handleUpdateVenue}>Update Venue</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

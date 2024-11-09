@@ -188,8 +188,8 @@ export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlayg
         </div>
         <DialogFooter>
           {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleAddSlot}>Add Slot</Button>
+          <Button variant="outline" className="border-[#FF3B30] text-[#FF3B30] hover:bg-[#FFD60A] hover:text-[#111827] transition-all duration-300 ease-in-out hover:scale-105">Cancel</Button>
+          <Button onClick={handleAddSlot} className="bg-[#FFD60A] text-[#111827] hover:bg-[#FFD60A]/90 transition-all duration-300 ease-in-out hover:scale-105">Add Slot</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

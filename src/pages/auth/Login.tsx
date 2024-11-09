@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,14 +12,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 export default function LoginPage() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
   const [isOwner, setIsOwner] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setIsLoading(true)
     try {
       const url = isOwner 
         ? `${import.meta.env.VITE_BACKEND_URL}/owner/login` 
@@ -34,25 +38,25 @@ export default function LoginPage() {
         throw new Error('Invalid email or password. Please try again.')
       }
       const data = await response.json()
-      console.log(data);
       sessionStorage.setItem('token', data.token)
-      // Handle successful login, e.g., redirect, etc.
+      navigate('/venue-listing') // Redirect to venue listing
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message)
       } else {
         setError('An unknown error occurred.')
       }
+    } finally {
+      setIsLoading(false)
     }
   }
- 
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-white shadow-xl">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Welcome Back to Flash</CardTitle>
-          <CardDescription className="text-center">Login to your account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-[#111827] text-center">Welcome Back to Flash</CardTitle>
+          <CardDescription className="text-center text-[#9CA3AF]">Login to your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -79,14 +83,14 @@ export default function LoginPage() {
                 </div>
               </RadioGroup>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-[#111827]">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9CA3AF]" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="john@example.com"
-                    className="pl-10"
+                    className="pl-10 border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -94,13 +98,13 @@ export default function LoginPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-[#111827]">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9CA3AF]" />
                   <Input
                     id="password"
                     type="password"
-                    className="pl-10"
+                    className="pl-10 border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -114,18 +118,31 @@ export default function LoginPage() {
                     Remember me
                   </label>
                 </div>
-                <a href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                <a href="/forgot-password" className="text-sm text-[#000000] hover:text-[#FF3B30] transition-colors duration-300">
                   Forgot password?
                 </a>
               </div>
             </div>
-            <Button className="w-full mt-6" type="submit">Log In</Button>
+            <Button 
+              className="w-full mt-6 bg-[#FF3B30] hover:bg-[#e63529] text-white transition-all duration-300 ease-in-out hover:scale-105"
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Signing in...
+                </div>
+              ) : (
+                'Log In'
+              )}
+            </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#9CA3AF]">
             Don't have an account?{' '}
-            <a href="/signup" className="text-blue-600 hover:underline">
+            <a href="/signup" className="text-[#FFD60A] hover:text-[#e6c700] transition-all duration-300 ease-in-out hover:scale-105 inline-block">
               Sign up
             </a>
           </p>

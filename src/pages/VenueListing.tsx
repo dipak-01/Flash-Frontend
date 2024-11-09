@@ -9,7 +9,8 @@ import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, IndianRupee, Star } from 'lucide-react'
 import axios from 'axios'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+
 export default function VenueListingPage() {
   interface Venue {
     id: string;
@@ -29,11 +30,21 @@ export default function VenueListingPage() {
     sport: '',
     priceRange: [0, 10000],
     availability: '',
-    name: '' // Add name filter
+    name: ''
   })
 
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/playground/all?page=1`)
+    fetchVenues();
+    const locationParam = searchParams.get('location');
+    if (locationParam) {
+      handleFilterChange('location', locationParam);
+    }
+  }, [searchParams]);
+
+  const fetchVenues = (keyword = '') => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/playground/all?page=1&keyword=${keyword}`)
       .then(response => {
         const fetchedVenues = response.data.result.map((venue: { _id: string; name: string; location: string; sports: string; price: number; imgUrl: string }) => ({
           id: venue._id,
@@ -41,15 +52,15 @@ export default function VenueListingPage() {
           location: venue.location,
           sports: venue.sports.split(', '),
           price: venue.price,
-          rating: 4.5, // Assuming a default rating as it's not provided
-          availability: 'High', // Assuming a default availability as it's not provided
+          rating: 4.5,
+          availability: 'High',
           imgUrl: venue.imgUrl
         }))
         setVenues(fetchedVenues)
         setFilteredVenues(fetchedVenues)
       })
       .catch(error => console.error('Error fetching venues:', error))
-  }, [])
+  }
 
   const handleFilterChange = (key:string, value:number[]|string) => {
     const newFilters = { ...filters, [key]: value }
@@ -68,13 +79,13 @@ export default function VenueListingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-[#F8F9FA] p-4">
       <div className="max-w-6xl mx-auto space-y-8">
-        <h1 className="text-3xl font-bold text-center">Find Your Perfect Venue</h1>
+        <h1 className="text-3xl font-bold text-center text-[#111827]">Find Your Perfect Venue</h1>
 
-        <Card>
+        <Card className="transition-all duration-300 ease-in-out hover:shadow-lg">
           <CardHeader>
-            <CardTitle>Filter Venues</CardTitle>
+            <CardTitle className="text-[#111827]">Filter Venues</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -82,21 +93,24 @@ export default function VenueListingPage() {
                 placeholder="Playground Name"
                 value={filters.name}
                 onChange={(e) => handleFilterChange('name', e.target.value)}
+                className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
               />
               <Input
                 placeholder="Location"
                 value={filters.location}
                 onChange={(e) => handleFilterChange('location', e.target.value)}
+                className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
               />
               <Input
                 placeholder="Sport"
                 value={filters.sport}
                 onChange={(e) => handleFilterChange('sport', e.target.value)}
+                className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="text-sm font-medium">Price Range: {filters.priceRange[0]} - {filters.priceRange[1]}</label>
+                <label className="text-sm font-medium text-[#111827]">Price Range: {filters.priceRange[0]} - {filters.priceRange[1]}</label>
                 <Slider
                   min={0}
                   max={10000}
@@ -107,7 +121,7 @@ export default function VenueListingPage() {
                 />
               </div>
               <Select onValueChange={(value) => handleFilterChange('availability', value)}>
-                <SelectTrigger>
+                <SelectTrigger className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300">
                   <SelectValue placeholder="Availability" />
                 </SelectTrigger>
                 <SelectContent>
@@ -122,38 +136,39 @@ export default function VenueListingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVenues.map((venue) => (
-            <Card key={venue.id} className="flex flex-col">
+            <Card key={venue.id} className="flex flex-col transition-all duration-300 ease-in-out hover:shadow-lg">
               <img src={venue.imgUrl || "/placeholder.svg"} alt={venue.name} className="w-full h-48 object-cover rounded-t-lg" />
               <CardHeader>
                 <CardTitle className="flex justify-between items-start">
-                  <span>{venue.name}</span>
-                  <Badge variant={venue.availability === 'High' ? 'default' : venue.availability === 'Medium' ? 'secondary' : 'outline'}>
+                  <span className="text-[#111827]">{venue.name}</span>
+                  <Badge variant={venue.availability === 'High' ? 'default' : venue.availability === 'Medium' ? 'secondary' : 'outline'} className="bg-[#FFD60A] text-[#111827]">
                     {venue.availability} Availability
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-grow">
-                <p className="flex items-center text-gray-600 mb-2">
-                  <MapPin className="mr-2 h-4 w-4" /> {venue.location}
+                <p className="flex items-center text-[#111827] mb-2">
+                  <MapPin className="mr-2 h-4 w-4 text-[#FF3B30]" /> {venue.location}
                 </p>
-                <p className="flex items-center text-gray-600 mb-2">
-                  <IndianRupee className="mr-2 h-4 w-4" /> {venue.price}/hour
+                <p className="flex items-center text-[#111827] mb-2">
+                  <IndianRupee className="mr-2 h-4 w-4 text-[#FF3B30]" /> {venue.price}/hour
                 </p>
-                <p className="flex items-center text-yellow-500 mb-2">
+                <p className="flex items-center text-[#FFD60A] mb-2">
                   <Star className="mr-2 h-4 w-4" /> {venue.rating}
                 </p>
                 <div className="mt-2">
                   {venue.sports.map((sport) => (
-                    <Badge key={sport} variant="secondary" className="mr-2 mb-2">
+                    <Badge key={sport} variant="secondary" className="mr-2 mb-2 bg-[#FF3B30] text-white">
                       {sport}
                     </Badge>
                   ))}
                 </div>
               </CardContent>
               <CardFooter>
-              <Button asChild>
-      <Link to={`/venue-details/${venue.id}`}>View Details</Link>
-    </Button>              </CardFooter>
+                <Button asChild className="w-full bg-[#FFD60A] text-[#111827] hover:bg-[#FFD60A]/90 transition-all duration-300 ease-in-out hover:scale-105">
+                  <Link to={`/venue-details/${venue.id}`}>View Details</Link>
+                </Button>
+              </CardFooter>
             </Card>
           ))}
         </div>

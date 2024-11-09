@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,6 +14,7 @@ import { User, Building, } from 'lucide-react'
 import axios from 'axios'
 
 export default function SignupPage() {
+  const [isLoading, setIsLoading] = useState(false)
   const [userType, setUserType] = useState('player')
   interface FormData {
     fullName: string;
@@ -41,11 +44,13 @@ export default function SignupPage() {
     agreeToTerms: false
   })
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {    const { name, value } = e.target
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {    
+    const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSportsChange = (sport: string) => {    setFormData(prev => ({
+  const handleSportsChange = (sport: string) => {    
+    setFormData(prev => ({
       ...prev,
       preferredSports: prev.preferredSports.includes(sport)
         ? prev.preferredSports.filter(s => s !== sport)
@@ -55,8 +60,11 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
-      const url = userType === 'player' ? `${import.meta.env.VITE_BACKEND_URL}/player/register` : `${import.meta.env.VITE_BACKEND_URL}/owner/register`;
+      const url = userType === 'player' 
+        ? `${import.meta.env.VITE_BACKEND_URL}/player/register` 
+        : `${import.meta.env.VITE_BACKEND_URL}/owner/register`;
       const data = userType === 'player' ? {
         name: formData.fullName,
         email: formData.email,
@@ -72,130 +80,225 @@ export default function SignupPage() {
         password: formData.password
       };
 
-      const response = await axios.post(url, data);
-      console.log('Registration successful:', response.data);
-      // Handle successful registration (e.g., redirect to login page)
+      await axios.post(url, data);
+      toast.success('Registration successful! Redirecting to login...');
+      
+      // Delay navigation for toast to be visible
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
+
     } catch (error) {
+      toast.error('Registration failed. Please try again.');
       console.error('Registration failed:', error);
-      // Handle registration error
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Join Flash Sports Platform</CardTitle>
-          <CardDescription className="text-center">Create your account to start playing or hosting</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              <RadioGroup defaultValue="player" className="flex justify-center space-x-4 mb-6" onValueChange={setUserType}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="player" id="player" />
-                  <Label htmlFor="player" className="flex items-center cursor-pointer">
-                    <User className="mr-2 h-4 w-4" /> Player
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="venue" id="venue" />
-                  <Label htmlFor="venue" className="flex items-center cursor-pointer">
-                    <Building className="mr-2 h-4 w-4" /> Venue Owner
-                  </Label>
-                </div>
-              </RadioGroup>
-
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input id="fullName" name="fullName" placeholder="John Doe" onChange={handleInputChange} required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" name="email" type="email" placeholder="john@example.com" onChange={handleInputChange} required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input id="password" name="password" type="password" onChange={handleInputChange} required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input id="confirmPassword" name="confirmPassword" type="password" onChange={handleInputChange} required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
-                  <Input id="phoneNumber" name="phoneNumber" type="tel" placeholder="+1 (555) 123-4567" onChange={handleInputChange} required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input id="dateOfBirth" name="dateOfBirth" type="date" onChange={handleInputChange} required />
-                </div>
-
-                {userType === 'player' && (
-                  <div className="grid gap-2">
-                    <Label>Preferred Sports</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {['Soccer', 'Basketball', 'Tennis', 'Volleyball', 'Swimming'].map((sport) => (
-                        <div key={sport} className="flex items-center space-x-2">
-                          <Checkbox id={sport} onCheckedChange={() => handleSportsChange(sport)} />
-                          <label htmlFor={sport} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            {sport}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
+    <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <Card className="w-full bg-white shadow-xl transition-all duration-300 ease-in-out hover:shadow-2xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-3xl font-bold text-center text-[#111827]">
+              Let's Play
+            </CardTitle>
+            <CardDescription className="text-center text-[#111827]">
+              Create your account to start playing or hosting
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                <RadioGroup defaultValue="player" className="flex justify-center space-x-4 mb-6" onValueChange={setUserType}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="player" id="player" />
+                    <Label htmlFor="player" className="flex items-center cursor-pointer text-[#000000]">
+                      <User className="mr-2 h-4 w-4 text-[#FF3B30]" /> Player
+                    </Label>
                   </div>
-                )}
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="venue" id="venue" />
+                    <Label htmlFor="venue" className="flex items-center cursor-pointer text-[#000000]">
+                      <Building className="mr-2 h-4 w-4 text-[#FF3B30]" /> Venue Owner
+                    </Label>
+                  </div>
+                </RadioGroup>
 
-                {userType === 'venue' && (
-                  <>
-                    <div className="grid gap-2">
-                      <Label htmlFor="venueName">Venue Name</Label>
-                      <Input id="venueName" name="venueName" placeholder="City Sports Complex" onChange={handleInputChange} required />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="venueAddress">Venue Address</Label>
-                      <Input id="venueAddress" name="venueAddress" placeholder="123 Main St, City, State, ZIP" onChange={handleInputChange} required />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="venueType">Venue Type</Label>
-                      <Select name="venueType" onValueChange={(value) => handleInputChange({ target: { name: 'venueType', value } } as unknown as React.ChangeEvent<HTMLSelectElement>)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select venue type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="indoor">Indoor Facility</SelectItem>
-                          <SelectItem value="outdoor">Outdoor Field</SelectItem>
-                          <SelectItem value="multipurpose">Multipurpose Complex</SelectItem>
-                          <SelectItem value="aquatic">Aquatic Center</SelectItem>
-                          <SelectItem value="court">Court (Tennis, Basketball, etc.)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input 
+                      id="fullName" 
+                      name="fullName" 
+                      placeholder="John Doe" 
+                      onChange={handleInputChange} 
+                      required 
+                      className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input 
+                      id="email" 
+                      name="email" 
+                      type="email" 
+                      placeholder="john@example.com" 
+                      onChange={handleInputChange} 
+                      required 
+                      className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input 
+                      id="password" 
+                      name="password" 
+                      type="password" 
+                      onChange={handleInputChange} 
+                      required 
+                      className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input 
+                      id="confirmPassword" 
+                      name="confirmPassword" 
+                      type="password" 
+                      onChange={handleInputChange} 
+                      required 
+                      className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <Input 
+                      id="phoneNumber" 
+                      name="phoneNumber" 
+                      type="tel" 
+                      placeholder="+1 (555) 123-4567" 
+                      onChange={handleInputChange} 
+                      required 
+                      className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                    <Input 
+                      id="dateOfBirth" 
+                      name="dateOfBirth" 
+                      type="date" 
+                      onChange={handleInputChange} 
+                      required 
+                      className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                    />
+                  </div>
 
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="agreeToTerms" onCheckedChange={(checked: boolean) => setFormData(prev => ({ ...prev, agreeToTerms: checked }))} />
-                  <label htmlFor="agreeToTerms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    I agree to the Terms of Service and Privacy Policy
-                  </label>
+                  {userType === 'player' && (
+                    <div className="grid gap-2">
+                      <Label>Preferred Sports</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {['Soccer', 'Basketball', 'Tennis', 'Volleyball', 'Swimming'].map((sport) => (
+                          <div key={sport} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={sport} 
+                              onCheckedChange={() => handleSportsChange(sport)}
+                              className="border-[#9CA3AF] text-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                            />
+                            <label htmlFor={sport} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                              {sport}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {userType === 'venue' && (
+                    <>
+                      <div className="grid gap-2">
+                        <Label htmlFor="venueName">Venue Name</Label>
+                        <Input 
+                          id="venueName" 
+                          name="venueName" 
+                          placeholder="City Sports Complex" 
+                          onChange={handleInputChange} 
+                          required 
+                          className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="venueAddress">Venue Address</Label>
+                        <Input 
+                          id="venueAddress" 
+                          name="venueAddress" 
+                          placeholder="123 Main St, City, State, ZIP" 
+                          onChange={handleInputChange} 
+                          required 
+                          className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="venueType">Venue Type</Label>
+                        <Select 
+                          name="venueType" 
+                          onValueChange={(value) => handleInputChange({ target: { name: 'venueType', value } } as unknown as React.ChangeEvent<HTMLSelectElement>)}
+                        >
+                          <SelectTrigger className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300">
+                            <SelectValue placeholder="Select venue type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="indoor">Indoor Facility</SelectItem>
+                            <SelectItem value="outdoor">Outdoor Field</SelectItem>
+                            <SelectItem value="multipurpose">Multipurpose Complex</SelectItem>
+                            <SelectItem value="aquatic">Aquatic Center</SelectItem>
+                            <SelectItem value="court">Court (Tennis, Basketball, etc.)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="agreeToTerms" 
+                      onCheckedChange={(checked: boolean) => setFormData(prev => ({ ...prev, agreeToTerms: checked }))}
+                      className="border-[#9CA3AF] text-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                    />
+                    <label htmlFor="agreeToTerms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      I agree to the Terms of Service and Privacy Policy
+                    </label>
+                  </div>
                 </div>
               </div>
-            </div>
-            <Button className="w-full mt-6" type="submit">Create Account</Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600">
-            Already have an account?{' '}
-            <a href="/login" className="text-blue-600 hover:underline">
-              Log in
-            </a>
-          </p>
-        </CardFooter>
-      </Card>
+              <Button 
+                className="w-full mt-6 bg-[#FFD60A] hover:bg-[#FFD60A]/90 text-[#111827] transition-all duration-300 ease-in-out hover:scale-105"
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <p className="text-[#111827]">
+              Already have an account?{' '}
+              <a href="/login" className="text-[#FF3B30] hover:text-[#FF3B30]/90 transition-all duration-300 ease-in-out hover:scale-105 inline-block">
+                Log in
+              </a>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   )
 }
