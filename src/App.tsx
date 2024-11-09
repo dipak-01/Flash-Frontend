@@ -9,6 +9,8 @@ import VenueDetailsPage from "@/pages/VenueDetails";
 import VenueListingPage from "@/pages/VenueListing";
 import GroupChatPage from "@/pages/GroupChat";
 import Header from "@/components/scratch/Header";
+import UpdateVenue from "@/pages/UpdateVenue";
+import OwnerVenues from "@/pages/OwnerVenues";
 
 export default function App() {
   return (
@@ -24,6 +26,9 @@ export default function App() {
         <Route path="/venue-details/:id" element={<VenueDetailsPage />} />
         <Route path="/venue-listing" element={<VenueListingPage />} />
         <Route path="/group-chat/:id" element={<GroupChatPage />} />
+        <Route path="/view-all-venues" element={<VenueListingPage />} />
+        <Route path="/owner-venues" element={<OwnerVenues />} />
+        <Route path="/update-venue/:id" element={<UpdateVenue />} />
       </Routes>
     </Router>
   );

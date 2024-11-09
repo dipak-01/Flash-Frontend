@@ -4,16 +4,22 @@ import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar } from "@/components/ui/calendar"
-import { MapPin, IndianRupee, Star } from 'lucide-react'
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { MapPin, IndianRupee, Star, Users, Clock, Calendar } from 'lucide-react'
 import { useParams } from "react-router-dom"
+
+interface Slot {
+  _id: string;
+  playgroundId: string;
+  ownerId: string;
+  time: string;
+  date: string;
+  players: string[];
+  slotSize: number;
+  playgroundName: string;
+}
 
 export default function VenueDetailPage() {
   const { id } = useParams<{ id: string }>()
-  console.log(id);
-  const [date, setDate] = useState<Date | undefined>(new Date())
   interface Venue {
     imgUrl: string;
     name: string;
@@ -30,16 +36,18 @@ export default function VenueDetailPage() {
   }
 
   const [venue, setVenue] = useState<Venue | null>(null)
-  interface Review {
-    id: string;
-    user: string;
-    rating: number;
-    date: string;
-    comment: string;
-  }
+  const [slots, setSlots] = useState<Slot[]>([])
 
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [slots, setSlots] = useState<{ time: string, date: string }[]>([])
+  const fetchSlots = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/slot/all?playgroundId=${id}`)
+      const data = await response.json()
+      setSlots(Array.isArray(data) ? data : data.slots || [])
+    } catch (error) {
+      console.error('Error fetching slots:', error)
+      setSlots([])
+    }
+  }
 
   useEffect(() => {
     async function fetchVenueDetails() {
@@ -54,58 +62,52 @@ export default function VenueDetailPage() {
         contactPhone: '+1 (555) 123-4567', // Hardcoded value
         contactEmail: 'info@citysportscomplex.com' // Hardcoded value
       })
-      // Assuming reviews are part of the fetched data
-      setReviews(data.reviews || [])
     }
-    async function fetchSlots() {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/slot/all?playgroundId=${id}`)
-      const data = await response.json()
-      console.log(data);
-      setSlots(data.map((slot: { time: string, date: string }) => ({ time: slot.time, date: slot.date })))
-    }
+
     fetchVenueDetails()
     fetchSlots()
   }, [id])
 
-  if (!venue) {
-    return <div>Loading...</div>
+  if (!venue) return <div>Loading...</div>
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
   }
 
-  const isSlotAvailable = (slotDate: string) => {
-    const slotDateTime = new Date(slotDate).getTime()
-    const currentDateTime = new Date().getTime()
-    return slotDateTime >= currentDateTime
+  const getRemainingSpots = (slot: Slot) => {
+    return typeof slot.slotSize === 'number' && Array.isArray(slot.players) 
+      ? slot.slotSize - slot.players.length 
+      : 0;
   }
-
-  const formatTime = (time: string, date: string) => {
-    const [hour, minute] = time.split(':')
-    const hourInt = parseInt(hour)
-    const ampm = hourInt >= 12 ? 'PM' : 'AM'
-    const formattedHour = hourInt % 12 || 12
-    return `${date} ${formattedHour}:${minute} ${ampm}`
-  }
-
-  const filteredSlots = slots.filter(slot => {
-    const slotDate = new Date(slot.date).toDateString()
-    const selectedDate = date?.toDateString()
-    return slotDate === selectedDate
-  })
 
   const bookSlot = async (slotId: string) => {
     try {
+      const token = sessionStorage.getItem('token');
+      console.log(slotId, token);
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/player/book?slotId=${slotId}`, {
-        method: 'POST',
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+       
       });
       if (response.ok) {
-        alert('Slot booked successfully!');
+        alert('Slot booked successfully!')
+        // Refresh slots after successful booking
+        await fetchSlots()
       } else {
-        alert('Failed to book slot.');
+        alert('Failed to book slot. Please try again.')
       }
     } catch (error) {
-      console.error('Error booking slot:', error);
-      alert('An error occurred while booking the slot.');
+      console.error('Error booking slot:', error)
+      alert('An error occurred while booking the slot.')
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -147,92 +149,54 @@ export default function VenueDetailPage() {
           </CardContent>
         </Card>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Booking</CardTitle>
-              <CardDescription>Select a date and time to book this venue</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="calendar">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="calendar">Calendar</TabsTrigger>
-                  <TabsTrigger value="timeslots">Time Slots</TabsTrigger>
-                </TabsList>
-                <TabsContent value="calendar">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    className="rounded-md border"
-                  />
-                </TabsContent>
-                <TabsContent value="timeslots">
-                  <div className="grid grid-cols-3 gap-2">
-                    {filteredSlots.map(({ time, date }) => (
-                      <Button
-                        key={time}
-                        variant="outline"
-                        className="w-full"
-                        disabled={!isSlotAvailable(date)}
-                        onClick={() => bookSlot(time)}
-                      >
-                        {formatTime(time, date)}
-                      </Button>
-                    ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full">Book Now</Button>
-            </CardFooter>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Amenities</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {venue.amenities.map((amenity: string, index: number) => (
-                  <li key={index} className="flex items-center">
-                    <svg className="h-5 w-5 mr-2 text-green-500" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 13l4 4L19 7"></path></svg>
-                    {amenity}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-
         <Card>
           <CardHeader>
-            <CardTitle>Reviews</CardTitle>
+            <CardTitle>Available Slots</CardTitle>
+            <CardDescription>Book your preferred time slot</CardDescription>
           </CardHeader>
           <CardContent>
-            {reviews.map((review) => (
-              <div key={review.id} className="mb-4 pb-4 border-b last:border-b-0">
-                <div className="flex items-center mb-2">
-                  <Avatar className="h-10 w-10 mr-2">
-                    <AvatarFallback>{review.user[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold">{review.user}</p>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                      <span>{review.rating}</span>
+            <div className="grid gap-4">
+              {slots.map((slot) => (
+                <Card key={slot._id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        <span className="font-semibold">{slot.time}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        <span>{formatDate(slot.date)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        <span>{getRemainingSpots(slot)} spots remaining</span>
+                      </div>
                     </div>
+                    <Button 
+                      onClick={() => bookSlot(slot._id)}
+                      disabled={getRemainingSpots(slot) === 0}
+                    >
+                      {getRemainingSpots(slot) === 0 ? 'Full' : 'Book Now'}
+                    </Button>
                   </div>
-                  <span className="ml-auto text-sm text-gray-500">{review.date}</span>
+                </Card>
+              ))}
+              {slots.length === 0 && (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Slots Available</h3>
+                  <p className="text-gray-500 mb-4">
+                    Currently there are no available slots for this venue. 
+                    New slots are usually added regularly.
+                  </p>
+                  <Button variant="outline" onClick={() => window.location.reload()}>
+                    Refresh Slots
+                  </Button>
                 </div>
-                <p>{review.comment}</p>
-              </div>
-            ))}
+              )}
+            </div>
           </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full">Write a Review</Button>
-          </CardFooter>
         </Card>
 
         <Card>

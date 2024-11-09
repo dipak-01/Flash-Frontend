@@ -28,7 +28,8 @@ export default function VenueListingPage() {
     location: '',
     sport: '',
     priceRange: [0, 10000],
-    availability: ''
+    availability: '',
+    name: '' // Add name filter
   })
 
   useEffect(() => {
@@ -57,7 +58,8 @@ export default function VenueListingPage() {
     const filtered = venues.filter(venue => {
       return (
         (!newFilters.location || venue.location.toLowerCase().includes(newFilters.location.toLowerCase())) &&
-        (!newFilters.sport || venue.sports.includes(newFilters.sport)) &&
+        (!newFilters.sport || venue.sports.some(s => s.toLowerCase().includes(newFilters.sport.toLowerCase()))) &&
+        (!newFilters.name || venue.name.toLowerCase().includes(newFilters.name.toLowerCase())) &&
         (venue.price >= newFilters.priceRange[0] && venue.price <= newFilters.priceRange[1]) &&
         (!newFilters.availability || venue.availability === newFilters.availability)
       )
@@ -75,24 +77,24 @@ export default function VenueListingPage() {
             <CardTitle>Filter Venues</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Input
+                placeholder="Playground Name"
+                value={filters.name}
+                onChange={(e) => handleFilterChange('name', e.target.value)}
+              />
               <Input
                 placeholder="Location"
                 value={filters.location}
                 onChange={(e) => handleFilterChange('location', e.target.value)}
               />
-              <Select onValueChange={(value) => handleFilterChange('sport', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Sport" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Soccer">Soccer</SelectItem>
-                  <SelectItem value="Basketball">Basketball</SelectItem>
-                  <SelectItem value="Tennis">Tennis</SelectItem>
-                  <SelectItem value="Cricket">Cricket</SelectItem>
-                  <SelectItem value="Swimming">Swimming</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                placeholder="Sport"
+                value={filters.sport}
+                onChange={(e) => handleFilterChange('sport', e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
                 <label className="text-sm font-medium">Price Range: {filters.priceRange[0]} - {filters.priceRange[1]}</label>
                 <Slider

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,11 +19,14 @@ import { Calendar, MapPin, Star, Trophy, Activity, Edit } from "lucide-react";
 
 export default function UserProfilePage() {
   const [user, setUser] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    location: "New York, NY",
-    bio: "Sports enthusiast and team player. Love soccer and basketball!",
-    sports: ["Soccer", "Basketball"],
+    name: "",
+    email: "",
+    location: "",
+    bio: "",
+    sports: [],
+    userhandle: "", // Added userhandle property
+    dob: "", // Added dob property
+    phone: "",
     achievements: [
       {
         id: 1,
@@ -56,6 +59,31 @@ export default function UserProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
 
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/player/profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data); // Log the fetched data
+        const userData = data[0]; // Assuming the data is an array and we need the first element
+        setUser((prevUser) => ({
+          ...prevUser,
+          name: userData.name,
+          email: userData.email,
+          location: "Unknown", // No location provided in the data
+          bio: "", // No bio provided in the data
+          sports: [], // No sports provided in the data
+          phone: userData.phone,
+          userhandle: userData.ownerHandle,
+          dob: userData.DOB,
+        }));
+      });
+  }, []);
+
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -73,7 +101,7 @@ export default function UserProfilePage() {
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-24 w-24">
                 <AvatarImage src="/placeholder.svg" alt={user.name} />
-                <AvatarFallback>{user.name[0]}</AvatarFallback>
+                <AvatarFallback>{user.name}</AvatarFallback>
               </Avatar>
               {isEditing ? (
                 <Input
@@ -112,6 +140,56 @@ export default function UserProfilePage() {
                   />
                 ) : (
                   <span>{user.location}</span>
+                )}
+              </div>
+              <div className="flex items-center text-gray-600">
+                <span className="mr-2">Username:</span>
+                {isEditing ? (
+                  <Input
+                    value={user.userhandle}
+                    onChange={(e) =>
+                      setUser({ ...user, userhandle: e.target.value })
+                    }
+                    className="w-40"
+                  />
+                ) : (
+                  <span>{user.userhandle}</span>
+                )}
+              </div>
+              <div className="flex items-center text-gray-600">
+                <span className="mr-2">Phone:</span>
+                {isEditing ? (
+                  <Input
+                    value={user.phone}
+                    onChange={(e) => setUser({ ...user, phone: e.target.value })}
+                    className="w-40"
+                  />
+                ) : (
+                  <span>{user.phone}</span>
+                )}
+              </div>
+              <div className="flex items-center text-gray-600">
+                <span className="mr-2">DOB:</span>
+                {isEditing ? (
+                  <Input
+                    value={user.dob}
+                    onChange={(e) => setUser({ ...user, dob: e.target.value })}
+                    className="w-40"
+                  />
+                ) : (
+                  <span>{user.dob}</span>
+                )}
+              </div>
+              <div className="flex items-center text-gray-600">
+                <span className="mr-2">Email:</span>
+                {isEditing ? (
+                  <Input
+                    value={user.email}
+                    onChange={(e) => setUser({ ...user, email: e.target.value })}
+                    className="w-40"
+                  />
+                ) : (
+                  <span>{user.email}</span>
                 )}
               </div>
             </div>
