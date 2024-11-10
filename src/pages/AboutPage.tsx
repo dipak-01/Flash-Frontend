@@ -1,6 +1,5 @@
 
-import { Footer } from "@/components/Footer";
-
+ 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -20,7 +19,6 @@ export default function AboutPage() {
           </p>
         </div>
       </main>
-      <Footer />
-    </div>
+     </div>
   );
 }

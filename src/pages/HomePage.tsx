@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Calendar, MapPin, Users, Search } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
- 
+ import 'react-responsive-carousel/lib/styles/carousel.min.css';
+import Component from "@/components/scratch/Caurousel";
 export default function HomePage() {
   const navigate = useNavigate();
  
@@ -16,8 +17,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
-     
-      <main className="container mx-auto px-4 py-12">
+      {/* Hero Section with Background Image */}
+      <main className="container mx-auto px-4 py-12 bg-hero-pattern bg-cover bg-center">
         <section className="text-center mb-16">
           <h1 className="text-4xl font-bold text-[#111827] mb-4">
             Connect, Play, and Book with Flash
@@ -149,6 +150,10 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Carousel Section */}
+        <Component />
+       
+
         <section className="bg-white rounded-lg p-8 text-center shadow-md">
           <h2 className="text-3xl font-bold text-[#111827] mb-4">
             Ready to Get Started?
@@ -166,7 +171,29 @@ export default function HomePage() {
         </section>
       </main>
 
-       
-    </div>
+      {/* Testimonials Section */}
+      <section className="bg-white py-12">
+        <div className="container mx-auto text-center">
+          <h2 className="text-3xl font-bold text-[#111827] mb-8">What Our Users Say</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Testimonial Cards */}
+            <div className="p-6 shadow-md rounded-lg">
+              <p className="text-[#111827]">"Flash has revolutionized the way I connect with other players."</p>
+              <p className="mt-4 text-right text-[#111827] font-semibold">- Alex</p>
+            </div>
+            <div className="p-6 shadow-md rounded-lg">
+              <p className="text-[#111827]">"Booking venues has never been easier. Highly recommend Flash!"</p>
+              <p className="mt-4 text-right text-[#111827] font-semibold">- Jamie</p>
+            </div>
+            <div className="p-6 shadow-md rounded-lg">
+              <p className="text-[#111827]">"A fantastic platform for organizing sports events."</p>
+              <p className="mt-4 text-right text-[#111827] font-semibold">- Sam</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+     </div>
   );
 }

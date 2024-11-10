@@ -1,6 +1,5 @@
 
-import { Footer } from "@/components/Footer";
-
+ 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -17,7 +16,6 @@ export default function TermsPage() {
           {/* Add more sections as needed */}
         </div>
       </main>
-      <Footer />
-    </div>
+     </div>
   );
 }

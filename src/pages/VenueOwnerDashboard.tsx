@@ -1,10 +1,21 @@
 "use client";
 import CustomDialog from "@/components/scratch/CustomDialog";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { toast } from 'react-toastify';
- // import { useForm } from "react-hook-form";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import { Filter } from 'lucide-react';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import {
   Card,
@@ -55,6 +66,17 @@ export default function VenueOwnerDashboard() {
   const [allBookings, setAllBookings] = useState<{ [key: string]: { upcoming: Booking[], past: Booking[] } }>({});
   const [isUpdateVenueDialogOpen, setIsUpdateVenueDialogOpen] = useState(false);
   const [venueToUpdate, setVenueToUpdate] = useState<Venue | null>(null);
+  const [venueFilter, setVenueFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState('asc');
+  
+  // Add analytics data state
+  interface AnalyticsData {
+    month: string;
+    bookings: number;
+    revenue: number;
+  }
+
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData[]>([]);
 
   useEffect(() => {
     async function fetchOwnerDetails() {
@@ -206,11 +228,50 @@ async function fetchSlots(playgroundId: string) {
     fetchOwnerDetails();
   }, []);
 
+  useEffect(() => {
+    const calculateAnalytics = () => {
+      const analytics: { [key: string]: { bookings: number; revenue: number } } = {};
+      
+      // Process all bookings
+      Object.values(allBookings).forEach(({ upcoming, past }) => {
+        [...upcoming, ...past].forEach(booking => {
+          const date = new Date(booking.date);
+          const monthYear = format(date, 'MMM yyyy');
+          
+          if (!analytics[monthYear]) {
+            analytics[monthYear] = { bookings: 0, revenue: 0 };
+          }
+          
+          analytics[monthYear].bookings += 1;
+          // Assuming venue price is available in the booking or calculating from venues
+          const venue = venues.find(v => v.name === booking.playgroundName);
+          if (venue) {
+            analytics[monthYear].revenue += parseInt(venue.price);
+          }
+        });
+      });
+
+      // Convert to array format for chart
+      const analyticsArray = Object.entries(analytics).map(([month, data]) => ({
+        month,
+        bookings: data.bookings,
+        revenue: data.revenue
+      }));
+
+      setAnalyticsData(analyticsArray.sort((a, b) => 
+        new Date(a.month).getTime() - new Date(b.month).getTime()
+      ));
+    };
+
+    calculateAnalytics();
+  }, [allBookings, venues]);
+
   interface Owner {
     _id: string;
     name: string;
     email: string;
     phone?: string;
+    avatar?: string; // Add avatar field
   }
 
   interface Venue {
@@ -308,6 +369,40 @@ async function fetchSlots(playgroundId: string) {
     }
   };
 
+  // Filter and sort venues
+  const filteredVenues = useMemo(() => {
+    let filtered = [...venues];
+    
+    if (venueFilter !== 'all') {
+      filtered = filtered.filter(venue => 
+        venue.sports.toLowerCase().includes(venueFilter.toLowerCase())
+      );
+    }
+
+    return filtered.sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.name.localeCompare(b.name);
+      }
+      return b.name.localeCompare(a.name);
+    });
+  }, [venues, venueFilter, sortOrder]);
+
+  // Convert bookings to calendar events
+  const calendarEvents = useMemo(() => {
+    const events: { title: string; date: string; backgroundColor: string; textColor: string }[] = [];
+    for (const playgroundId in allBookings) {
+      allBookings[playgroundId].upcoming.forEach(booking => {
+        events.push({
+          title: `${booking.playgroundName} - ${booking.time}`,
+          date: booking.date,
+          backgroundColor: '#FFD60A',
+          textColor: '#111827'
+        });
+      });
+    }
+    return events;
+  }, [allBookings]);
+
   // Add loading and error states to the return JSX
   if (isLoading) {
     return (
@@ -327,12 +422,15 @@ async function fetchSlots(playgroundId: string) {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] p-4">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header remains the same */}
         <header className="bg-white rounded-lg shadow p-6 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src="/placeholder.svg" alt="Venue Owner" />
-              <AvatarFallback>{owner?.name}</AvatarFallback>
+              <AvatarImage src={owner?.avatar || "/placeholder-avatar.png"} alt={owner?.name || "Owner"} />
+              <AvatarFallback>
+                {owner?.name?.split(" ").map((n) => n[0]).join("") || "O"}
+              </AvatarFallback>
             </Avatar>
             <div>
               <h1 className="text-2xl font-bold text-[#111827]">Welcome, {owner?.name}</h1>
@@ -342,221 +440,302 @@ async function fetchSlots(playgroundId: string) {
           <Button className="bg-[#FFD60A] text-[#111827] hover:bg-[#FFC107]/90" onClick={() => setIsAddVenueDialogOpen(true)}>Add New Venue</Button>
         </header>
 
-        <div className="space-y-8">
+        {/* Changed from grid to flex column */}
+        <div className="flex flex-col space-y-8">
+          {/* Bookings Card - Now full width */}
           <Card className="shadow-lg rounded-lg bg-white">
             <CardHeader>
               <CardTitle className="text-3xl font-bold text-[#111827]">Bookings</CardTitle>
-              <CardDescription className="text-lg text-[#111827]">
+              <CardDescription className="text-lg text-[#353943]">
                 Manage your upcoming and past bookings
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="upcoming" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                  <TabsTrigger value="past">Past</TabsTrigger>
-                </TabsList>
-                <TabsContent value="upcoming">
-  {Object.keys(allBookings).map((playgroundId) => (
-    <div key={playgroundId} className="space-y-6">
-      <h3 className="font-semibold text-xl text-[#111827] mt-4">{venues.find(v => v._id === playgroundId)?.name}</h3>
-      {allBookings[playgroundId].upcoming.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {allBookings[playgroundId].upcoming.map((booking) => (
-            <Card key={booking._id} className="transition-all duration-200 hover:shadow-lg">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg font-bold">{booking.playgroundName}</CardTitle>
-                  <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
-                    Upcoming
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <div className="space-y-3">
-                  <div className="flex items-center text-sm space-x-2">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      {format(new Date(booking.date), "MMMM d, yyyy")}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm space-x-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <span className="font-medium">{booking.time}</span>
-                  </div>
-                  <div className="flex items-center text-sm space-x-2">
-                    <Users className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      {booking.players.length}/{booking.slotSize} players joined
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card className="bg-gray-50">
-          <CardContent className="flex items-center justify-center py-8">
-            <p className="text-gray-500">No upcoming bookings to show</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  ))}
-</TabsContent>
-<TabsContent value="past">
-  {Object.keys(allBookings).map((playgroundId) => (
-    <div key={playgroundId} className="space-y-6">
-      <h3 className="font-semibold text-xl text-[#111827] mt-4">{venues.find(v => v._id === playgroundId)?.name}</h3>
-      {allBookings[playgroundId].past.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {allBookings[playgroundId].past.map((booking) => (
-            <Card key={booking._id} className="transition-all duration-200 hover:shadow-lg">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg font-bold">{booking.playgroundName}</CardTitle>
-                  <span className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded-full">
-                    Past
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <div className="space-y-3">
-                  <div className="flex items-center text-sm space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium text-gray-600">
-                      {format(new Date(booking.date), "MMMM d, yyyy")}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm space-x-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium text-gray-600">{booking.time}</span>
-                  </div>
-                  <div className="flex items-center text-sm space-x-2">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium text-gray-600">
-                      {booking.players.length}/{booking.slotSize} players attended
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card className="bg-gray-50">
-          <CardContent className="flex items-center justify-center py-8">
-            <p className="text-gray-500">No past bookings to show</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  ))}
-</TabsContent>
+              <div className="overflow-x-auto">
+                <div className="min-w-[800px]"> {/* Minimum width to ensure proper layout */}
+                  <Tabs defaultValue="upcoming" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+                      <TabsTrigger value="past">Past</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="upcoming">
+  {Object.keys(allBookings).length === 0 ? (
+    <Card className="bg-gray-50">
+      <CardContent className="flex items-center justify-center py-4">
+        <p className="text-gray-500">No venues have any bookings</p>
+      </CardContent>
+    </Card>
+  ) : (
+    Object.keys(allBookings).map((playgroundId) => {
+      const venue = venues.find(v => v._id === playgroundId);
+      if (!venue || allBookings[playgroundId].upcoming.length === 0) return null;
 
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-8">
-          <Card className="shadow-lg rounded-lg">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold">Your Venues</CardTitle>
-              <CardDescription>Manage your venue listings</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6">
-              {venues.map((venue) => (
-                <Card key={venue._id} className="transition-all duration-200 hover:shadow-lg">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg font-bold">{venue.name}</CardTitle>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-[#FF3B30] text-[#FF3B30] hover:bg-[#FF3B30]/10"
-                        onClick={() => {
-                          setVenueToUpdate(venue);
-                          setIsUpdateVenueDialogOpen(true);
-                        }}
-                      >
-                        Update Playground Details
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center space-x-2 text-sm">
-                          <Clock className="h-4 w-4 text-primary" />
-                          <span>{venue.timings}</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-sm">
-                          <IndianRupee className="h-4 w-4 text-primary" />
-                          <span>{venue.price}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <ArrowRight className="h-4 w-4 text-primary" />
-                        <span>{venue.location}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Users className="h-4 w-4 text-primary" />
-                        <span>{venue.sports}</span>
+      return (
+        <Card key={playgroundId} className="mb-4 border-none shadow-none">
+          <CardContent className="p-2">
+            <div className="overflow-x-auto">
+              <div className="flex gap-3 p-2">
+                {allBookings[playgroundId].upcoming.map((booking) => (
+                  <div key={booking._id}
+                       className="w-[260px] bg-white rounded-lg border hover:shadow-lg transition-all duration-300 flex-shrink-0">
+                    <div className="p-3 border-b">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-800">{venue.name}</h3>
+                        <span className="text-xs px-2 py-1 bg-green-100 text-green-600 rounded-full">
+                          Upcoming
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-end space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedPlaygroundId(venue._id);
-                        setSelectedVenueTiming(venue.timings);
-                        setIsDialogOpen(true);
-                      }}
-                    >
-                      Add Slot
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="shadow-lg">
-  <CardHeader>
-    <CardTitle className="text-2xl font-bold">Analytics Overview</CardTitle>
-    <CardDescription>Your venue performance at a glance</CardDescription>
-  </CardHeader>
-  <CardContent>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {[
-        { icon: Calendar, label: "Total Bookings", value: "156" },
-        { icon: Users, label: "Unique Customers", value: "89" },
-        { icon: IndianRupee, label: "Revenue", value: "₹12,450" },
-        { icon: Clock, label: "Avg. Duration", value: "2h 15m" },
-      ].map((stat, index) => (
-        <Card key={index} className="bg-primary/5">
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center space-y-2">
-              <stat.icon className="h-6 w-6 text-primary" />
-              <p className="text-sm font-medium text-gray-600">
-                {stat.label}
-              </p>
-              <p className="text-2xl font-bold text-primary">
-                {stat.value}
-              </p>
+                    <div className="p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-600" />
+                        <p className="text-sm text-gray-800">
+                          {format(new Date(booking.date), "MMMM d, yyyy")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-gray-600" />
+                        <p className="text-sm text-gray-800">{booking.time}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-gray-600" />
+                        <p className="text-sm text-gray-800">
+                          {booking.players.length} / {booking.slotSize} players joined
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
-      ))}
-    </div>
-  </CardContent>
-</Card>
-      </div>
+      );
+    })
+  )}
+</TabsContent>
+
+<TabsContent value="past">
+  {Object.keys(allBookings).length === 0 ? (
+    <Card className="bg-gray-50">
+      <CardContent className="flex items-center justify-center py-4">
+        <p className="text-gray-500">No past bookings found</p>
+      </CardContent>
+    </Card>
+  ) : (
+    Object.keys(allBookings).map((playgroundId) => {
+      const venue = venues.find(v => v._id === playgroundId);
+      if (!venue || allBookings[playgroundId].past.length === 0) return null;
+
+      return (
+        <Card key={playgroundId} className="mb-4 border-none shadow-none">
+          <CardContent className="p-2">
+            <div className="overflow-x-auto">
+              <div className="flex gap-3 p-2">
+                {allBookings[playgroundId].past.map((booking) => (
+                  <div key={booking._id}
+                       className="w-[260px] bg-white rounded-lg border hover:shadow-lg transition-all duration-300 flex-shrink-0">
+                    <div className="p-3 border-b">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-700">{venue.name}</h3>
+                        <span className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded-full">
+                          Past
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <p className="text-sm text-gray-700">
+                          {format(new Date(booking.date), "MMMM d, yyyy")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-gray-500" />
+                        <p className="text-sm text-gray-700">{booking.time}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-gray-500" />
+                        <p className="text-sm text-gray-700">
+                          {booking.players.length} / {booking.slotSize} players joined
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    })
+  )}
+</TabsContent>
+
+                  </Tabs>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+         
+          <Card className="shadow-lg rounded-lg">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-2xl font-bold">Your Venues</CardTitle>
+              <div className="flex space-x-2">
+                <Select value={venueFilter} onValueChange={setVenueFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by sport" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sports</SelectItem>
+                    <SelectItem value="football">Football</SelectItem>
+                    <SelectItem value="cricket">Cricket</SelectItem>
+                    <SelectItem value="basketball">Basketball</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <div className="min-w-[800px] grid grid-cols-2 gap-6">
+                  {filteredVenues.map((venue) => (
+                    <Card key={venue._id} className="transition-all duration-200 hover:shadow-lg">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-lg font-bold">{venue.name}</CardTitle>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-[#FF3B30] text-[#FF3B30] hover:bg-[#FF3B30]/10"
+                            onClick={() => {
+                              setVenueToUpdate(venue);
+                              setIsUpdateVenueDialogOpen(true);
+                            }}
+                          >
+                            Update Playground Details
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-2 text-sm">
+                              <Clock className="h-4 w-4 text-primary" />
+                              <span>{venue.timings}</span>
+                            </div>
+                            <div className="flex items-center space-x-2 text-sm">
+                              <IndianRupee className="h-4 w-4 text-primary" />
+                              <span>{venue.price}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm">
+                            <ArrowRight className="h-4 w-4 text-primary" />
+                            <span>{venue.location}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm">
+                            <Users className="h-4 w-4 text-primary" />
+                            <span>{venue.sports}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="flex justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPlaygroundId(venue._id);
+                            setSelectedVenueTiming(venue.timings);
+                            setIsDialogOpen(true);
+                          }}
+                        >
+                          Add Slot
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Analytics section remains the same */}
+        <div className="space-y-8">
+          {/* Analytics Charts */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Booking Analytics</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={analyticsData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip />
+                  <Line yAxisId="left" type="monotone" dataKey="bookings" stroke="#FFD60A" name="Bookings" />
+                  <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#111827" name="Revenue (₹)" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Calendar View */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Booking Calendar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FullCalendar
+                plugins={[dayGridPlugin]}
+                initialView="dayGridMonth"
+                events={calendarEvents}
+                height="500px"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Analytics Overview */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold">Analytics Overview</CardTitle>
+              <CardDescription>Your venue performance at a glance</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { icon: Calendar, label: "Total Bookings", value: "156" },
+                  { icon: Users, label: "Unique Customers", value: "89" },
+                  { icon: IndianRupee, label: "Revenue", value: "₹12,450" },
+                  { icon: Clock, label: "Avg. Duration", value: "2h 15m" },
+                ].map((stat, index) => (
+                  <Card key={index} className="bg-primary/5">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col items-center space-y-2">
+                        <stat.icon className="h-6 w-6 text-primary" />
+                        <p className="text-sm font-medium text-gray-600">
+                          {stat.label}
+                        </p>
+                        <p className="text-2xl font-bold text-primary">
+                          {stat.value}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
       <CustomDialog
         isOpen={isDialogOpen}
@@ -638,6 +817,7 @@ async function fetchSlots(playgroundId: string) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 }

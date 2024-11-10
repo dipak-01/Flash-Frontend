@@ -1,6 +1,5 @@
 
-import { Footer } from "@/components/Footer";
-
+ 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -17,7 +16,6 @@ export default function PrivacyPage() {
           {/* Add more sections as needed */}
         </div>
       </main>
-      <Footer />
-    </div>
+     </div>
   );
 }

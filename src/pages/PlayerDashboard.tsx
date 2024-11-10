@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, MapPin, Users, Clock } from "lucide-react";
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
 
 interface Profile {
   name: string;
   email: string;
   joinedDate: string;
-  avatar?: string;
+  avatar?: string; // Make sure avatar field is defined
   DOB: string;
   phone: number;
   userhandle: string;
@@ -140,6 +142,12 @@ export default function PlayerDashboard() {
           profileRes.json(),
         ]);
 
+        // Sort bookings by date
+        bookingsData.sort(
+          (a: Booking, b: Booking) =>
+            new Date(a.slotDate).getTime() - new Date(b.slotDate).getTime()
+        );
+
         setBookings(bookingsData);
         setProfile(profileData[0]);
         console.log(profileData);
@@ -161,6 +169,12 @@ export default function PlayerDashboard() {
     fetchData();
   }, []);
 
+  // Convert bookings to calendar events
+  const calendarEvents = bookings.map((booking) => ({
+    title: `${booking.playgroundName} - ${booking.slotTime}`,
+    date: booking.slotDate,
+  }));
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] p-4">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -168,8 +182,8 @@ export default function PlayerDashboard() {
           <div className="flex items-start">
             <div className="flex items-start space-x-6 w-full">
               <Avatar className="h-20 w-20">
-                <AvatarImage
-                  src={profile?.avatar || "/placeholder.svg"}
+                <AvatarImage 
+                  src={profile?.avatar || "/placeholder-avatar.png"} 
                   alt={profile?.name || "Player"}
                 />
                 <AvatarFallback>
@@ -222,6 +236,7 @@ export default function PlayerDashboard() {
         </header>
 
         <div className="grid md:grid-cols-3 gap-8">
+          {/* Adjusted the bookings section to reduce height */}
           <Card className="md:col-span-3">
             <CardHeader>
               <CardTitle className="text-[#111827]">Your Bookings</CardTitle>
@@ -231,13 +246,17 @@ export default function PlayerDashboard() {
                   : `${bookings.length} bookings found`}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4">
               {isLoading ? (
                 <div className="flex justify-center items-center h-40">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF3B30]"></div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  style={{ maxHeight: '400px', overflowY: 'auto' }} // Add this line
+                >
+                  {/* Adjusted to two columns to reduce height */}
                   {bookings.map((booking: Booking, index: number) => (
                     <Card
                       key={index}
@@ -295,6 +314,21 @@ export default function PlayerDashboard() {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Add Calendar Component */}
+          <Card className="md:col-span-3">
+            <CardHeader>
+              <CardTitle className="text-[#111827]">Booking Calendar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FullCalendar
+                plugins={[dayGridPlugin]}
+                initialView="dayGridMonth"
+                events={calendarEvents}
+                height="400px" // Adjust height as needed
+              />
             </CardContent>
           </Card>
         </div>
