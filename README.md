@@ -7,6 +7,10 @@ Flash is a comprehensive web-based platform designed to facilitate and enhance t
  [Presentation](https://www.canva.com/design/DAGVP9hVtkA/PWEuCrfdbsnZBA2jFLowcQ/edit?utm_content=DAGVP9hVtkA&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
  
  [Demo](https://flash-frontend-plum.vercel.app/)
+ 
+ [Figma File](https://www.figma.com/design/XOjIZQVP5G1NAcg6dQ8m1N/Flash-Design?node-id=34104-3315&t=8KbkCdvUyHCv9lHx-1)
+
+ [Notion](https://lovely-roast-85e.notion.site/Group-5-SE-Lab-Assignment-01-b436895c6af64d09bdedb16939d89f0c)
 
 ## Purpose
 
@@ -15,6 +19,8 @@ The purpose of Flash is to serve as a unified platform that enhances accessibili
 ## UI/UX
 
 ![image](https://github.com/user-attachments/assets/12222f0f-c8c7-44c4-b44b-3f6821451971)
+![1440w light](https://github.com/user-attachments/assets/ed5f54fb-2597-426f-8e29-13010fd46261)
+
 
 
 ## Technologies Used
