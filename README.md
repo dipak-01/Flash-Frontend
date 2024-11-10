@@ -1,50 +1,44 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# FLASH
 
-Currently, two official plugins are available:
+Flash is a comprehensive web-based platform designed to facilitate and enhance the experience of sports enthusiasts and venue owners alike. By providing players with tools to connect, discover, and book local playgrounds and allowing playground owners to manage and promote their facilities, Flash aims to become the premier solution for sports networking and venue management. The platform includes player-to-player booking capabilities, robust search and filtering options, and a streamlined system for owners to create and control playground slots, ultimately fostering an interconnected and vibrant sports community.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Expanding the ESLint configuration
+ [Presentation](https://www.canva.com/design/DAGVP9hVtkA/PWEuCrfdbsnZBA2jFLowcQ/edit?utm_content=DAGVP9hVtkA&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+ 
+ [Demo](https://flash-frontend-plum.vercel.app/)
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Purpose
 
-- Configure the top-level `parserOptions` property like this:
+The purpose of Flash is to serve as a unified platform that enhances accessibility, community building, and convenience for both sports players and playground owners. Flash tackles the everyday challenges players face in finding dedicated teammates, discovering suitable playgrounds, and coordinating local games while providing playground owners with tools to manage their facilities, increase visibility, and simplify the booking process. By fostering personalised connections, offering robust search and filtering functionalities, and creating a dynamic marketplace for sports facilities, our project aims to energise the sports community, encouraging active participation and promoting a connected social environment.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## UI/UX
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+![image](https://github.com/user-attachments/assets/12222f0f-c8c7-44c4-b44b-3f6821451971)
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## Technologies Used
+
+Frontend  -  React.js , shadcn library for ui components,  lucid react icons library,  react toast - alerts,  tailwind CSS , redix.
+
+Backend  - Express.js , Node.js , mongoose,  mongoDB , dotenv , bcrypt , cors , JSON Web Token library , nodmon - fast development , nanoid - random string generator .
+
+Testing - 1. API testing - Chai (automated testing) Mocha (environment), Postman - manual and documentation.
+
+Deployment - vercel - frontend,  render  - backend , docker - to scale backend.
+## Contributing
+
+We welcome contributions from the community! If you'd like to contribute, please follow these steps:
+
+1-Fork the repository.
+
+2-Create a new branch (git checkout -b feature-branch).
+
+3-Make your changes and commit them (git commit -m 'Add new feature').
+
+4-Push to the branch (git push origin feature-branch).
+
+5-Create a pull request.
+## Acknowledgments
+
+A big thank you to the open-source community for providing invaluable resources and inspiration. Special thanks to the creators and maintainers of the MERN stack technologies.
