@@ -17,6 +17,8 @@ The purpose of Flash is to serve as a unified platform that enhances accessibili
 ## UI/UX
 
 ![image](https://github.com/user-attachments/assets/12222f0f-c8c7-44c4-b44b-3f6821451971)
+![1440w light](https://github.com/user-attachments/assets/ed5f54fb-2597-426f-8e29-13010fd46261)
+
 
 
 ## Technologies Used
