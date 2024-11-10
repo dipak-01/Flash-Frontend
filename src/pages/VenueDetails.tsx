@@ -131,11 +131,24 @@ export default function VenueDetailPage() {
     }
   }
 
+  const isSlotInPast = (slot: Slot) => {
+    const [hours, minutes] = slot.time.split(':');
+    const slotDateTime = new Date(slot.date);
+    slotDateTime.setHours(parseInt(hours), parseInt(minutes));
+    return slotDateTime < new Date();
+  };
+
   const handlePayment = async (slotId: string) => {
     try {
       const token = sessionStorage.getItem('token');
       if (!token) {
         toast.error('Please login to book a slot');
+        return;
+      }
+
+      const slot = slots.find(s => s._id === slotId);
+      if (slot && isSlotInPast(slot)) {
+        toast.error('Cannot book slots from the past');
         return;
       }
       
@@ -215,10 +228,10 @@ export default function VenueDetailPage() {
                     </div>
                     <Button 
                       onClick={() => handlePayment(slot._id)}
-                      disabled={getRemainingSpots(slot) === 0}
+                      disabled={getRemainingSpots(slot) === 0 || isSlotInPast(slot)}
                       className="bg-[#FFD60A] text-[#111827] hover:bg-[#FFD60A]/90 transition-all duration-300 ease-in-out hover:scale-105"
                     >
-                      {getRemainingSpots(slot) === 0 ? 'Full' : 'Book Now'}
+                      {getRemainingSpots(slot) === 0 ? 'Full' : isSlotInPast(slot) ? 'Expired' : 'Book Now'}
                     </Button>
                   </div>
                 </Card>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,13 @@ import axios from 'axios'
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [userType, setUserType] = useState('player')
+  const [errors, setErrors] = useState({
+    password: '',
+    phoneNumber: ''
+  });
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   interface FormData {
     fullName: string;
     email: string;
@@ -44,9 +51,42 @@ export default function SignupPage() {
     agreeToTerms: false
   })
 
+  const validatePassword = (password: string) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setErrors(prev => ({
+        ...prev,
+        password: 'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character'
+      }));
+      return false;
+    }
+    setErrors(prev => ({ ...prev, password: '' }));
+    return true;
+  };
+
+  const validatePhoneNumber = (phone: string) => {
+    const phoneRegex = /^(\+91[-\s]?)?[0]?(91)?[789]\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+      setErrors(prev => ({
+        ...prev,
+        phoneNumber: 'Please enter a valid Indian phone number (+91)'
+      }));
+      return false;
+    }
+    setErrors(prev => ({ ...prev, phoneNumber: '' }));
+    return true;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {    
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'password') {
+      validatePassword(value);
+    }
+    if (name === 'phoneNumber') {
+      validatePhoneNumber(value);
+    }
   }
 
   const handleSportsChange = (sport: string) => {    
@@ -60,6 +100,20 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Validate all fields before submission
+    const isPasswordValid = validatePassword(formData.password);
+    const isPhoneValid = validatePhoneNumber(formData.phoneNumber);
+    
+    if (!isPasswordValid || !isPhoneValid || !formData.agreeToTerms) {
+      toast.error('Please fix all errors before submitting');
+      return;
+    }
+
+    if (!formData.agreeToTerms) {
+      toast.error('Please agree to the Terms of Service and Privacy Policy');
+      return;
+    }
     setIsLoading(true);
     try {
       const url = userType === 'player' 
@@ -152,25 +206,48 @@ export default function SignupPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input 
-                      id="password" 
-                      name="password" 
-                      type="password" 
-                      onChange={handleInputChange} 
-                      required 
-                      className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
-                    />
+                    <div className="relative">
+                      <Input 
+                        id="password" 
+                        name="password" 
+                        type={showPassword ? "text" : "password"}
+                        onChange={handleInputChange} 
+                        required 
+                        className={`border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300 ${
+                          errors.password ? 'border-red-500' : ''
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                    {errors.password && (
+                      <span className="text-red-500 text-sm">{errors.password}</span>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input 
-                      id="confirmPassword" 
-                      name="confirmPassword" 
-                      type="password" 
-                      onChange={handleInputChange} 
-                      required 
-                      className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
-                    />
+                    <div className="relative">
+                      <Input 
+                        id="confirmPassword" 
+                        name="confirmPassword" 
+                        type={showConfirmPassword ? "text" : "password"}
+                        onChange={handleInputChange} 
+                        required 
+                        className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -178,11 +255,16 @@ export default function SignupPage() {
                       id="phoneNumber" 
                       name="phoneNumber" 
                       type="tel" 
-                      placeholder="+1 (555) 123-4567" 
+                      placeholder="+91 XXXXX XXXXX" 
                       onChange={handleInputChange} 
                       required 
-                      className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
+                      className={`border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300 ${
+                        errors.phoneNumber ? 'border-red-500' : ''
+                      }`}
                     />
+                    {errors.phoneNumber && (
+                      <span className="text-red-500 text-sm">{errors.phoneNumber}</span>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="dateOfBirth">Date of Birth</Label>
@@ -276,7 +358,7 @@ export default function SignupPage() {
               <Button 
                 className="w-full mt-6 bg-[#FFD60A] hover:bg-[#FFD60A]/90 text-[#111827] transition-all duration-300 ease-in-out hover:scale-105"
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !formData.agreeToTerms}
               >
                 {isLoading ? (
                   <>
