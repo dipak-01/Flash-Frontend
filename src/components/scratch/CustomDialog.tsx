@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from 'react-toastify';
 
 interface CustomDialogProps {
   isOpen: boolean;
@@ -27,9 +28,9 @@ interface CustomDialogProps {
 
 export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlaygroundId, timing }: CustomDialogProps) {
   const [newSlot, setNewSlot] = useState({
-    date: "2024-11-07",
-    startTime: "11:00",
-    endTime: "12:00",
+    date: new Date().toISOString().split('T')[0],
+    startTime: "",
+    endTime: "",
     slotSize: "10",
     playgroundId: selectedPlaygroundId,
   });
@@ -50,21 +51,33 @@ export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlayg
 
     const startHour = parseInt(timings[0].split(":")[0], 10);
     const endHour = parseInt(timings[1].split(":")[0], 10);
+    const currentDate = new Date();
+    const currentHour = currentDate.getHours();
+    const currentMinutes = currentDate.getMinutes();
 
-    // Generate all possible times in a day in increments of 30 minutes
-    const times = Array.from({ length: 24 }, (_, i) => {
-      const hour = i.toString().padStart(2, "0");
-      return [`${hour}:00`, `${hour}:30`];
-    }).flat();
+    // Generate times in 30-minute increments
+    const times = Array.from({ length: 48 }, (_, i) => {
+      const hour = Math.floor(i / 2).toString().padStart(2, "0");
+      const minute = i % 2 === 0 ? "00" : "30";
+      return `${hour}:${minute}`;
+    });
 
-    // Filter available times based on playground timings
+    // Filter times based on playground hours and current time if it's today
     const available = times.filter(time => {
-      const [hour] = time.split(":").map(Number);
-      return hour >= startHour && hour < endHour;
+      const [hour, minute] = time.split(":").map(Number);
+      const isWithinPlaygroundHours = hour >= startHour && hour < endHour;
+      
+      if (newSlot.date === currentDate.toISOString().split('T')[0]) {
+        // For today, only show future times
+        if (hour < currentHour) return false;
+        if (hour === currentHour && minute <= currentMinutes) return false;
+      }
+      
+      return isWithinPlaygroundHours;
     });
 
     setAvailableTimes(available);
-  }, [timing]);
+  }, [timing, newSlot.date]);
 
   useEffect(() => {
     setNewSlot((prevSlot) => ({
@@ -72,6 +85,33 @@ export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlayg
       playgroundId: selectedPlaygroundId,
     }));
   }, [selectedPlaygroundId]);
+
+  const validateTimeSelection = (startTime: string, endTime: string): boolean => {
+    if (!startTime || !endTime) return false;
+    
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+    
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+    
+    // Ensure minimum 30 minutes duration
+    return endMinutes - startMinutes >= 30;
+  };
+
+  const handleStartTimeChange = (value: string) => {
+    setNewSlot(prev => ({ ...prev, startTime: value, endTime: "" }));
+    setError(null);
+  };
+
+  const handleEndTimeChange = (value: string) => {
+    if (!validateTimeSelection(newSlot.startTime, value)) {
+      setError("Slot must be at least 30 minutes long");
+      return;
+    }
+    setNewSlot(prev => ({ ...prev, endTime: value }));
+    setError(null);
+  };
 
   const handleAddSlot = async () => {
     console.log(newSlot);
@@ -81,8 +121,7 @@ export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlayg
     const slotDate = new Date(newSlot.date + "T" + newSlot.startTime);
 
     if (slotDate < currentDate) {
-      setError("Cannot book slot for past date or time.");
-      alert("Cannot book slot for past date or time.");
+      toast.error("Cannot book slot for past date or time.");
       return;
     }
     const formattedSlot = {
@@ -111,9 +150,11 @@ export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlayg
 
       const data = await response.json();
       console.log(data);
+      toast.success('Slot added successfully!');
       onAddSlot(newSlot);
       onClose();
     } catch (error) {
+      toast.error('Failed to add slot. Please try again.');
       if (error instanceof Error) {
         console.error("Error adding slot:", error.message);
         setError("Failed to add slot. Please try again.");
@@ -133,15 +174,35 @@ export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlayg
             <Calendar
               mode="single"
               selected={new Date(newSlot.date)}
-              onSelect={(date) => setNewSlot({ ...newSlot, date: date?.toISOString().split("T")[0] || new Date().toISOString().split("T")[0] })}
+              onSelect={(date) => {
+                if (date) {
+                  // Use the date as-is without timezone adjustment
+                  const selectedDate = date.toLocaleDateString('en-CA'); // Format: YYYY-MM-DD
+                  setNewSlot({
+                    ...newSlot,
+                    date: selectedDate,
+                    startTime: "",
+                    endTime: ""
+                  });
+                }
+              }}
               className="rounded-md border"
-              disabled={(date) => date < new Date()}  // Disable past dates
+              disabled={(date) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const maxDate = new Date();
+                maxDate.setDate(today.getDate() + 5); // Add 5 days
+                maxDate.setHours(0, 0, 0, 0);
+                
+                return date < today || date > maxDate;
+              }}
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <Label htmlFor="startTime">Start Time</Label>
-              <Select onValueChange={(value) => setNewSlot({ ...newSlot, startTime: value })}>
+              <Select onValueChange={handleStartTimeChange}>
                 <SelectTrigger id="startTime">
                   <SelectValue placeholder="Select start time" />
                 </SelectTrigger>
@@ -156,16 +217,26 @@ export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlayg
             </div>
             <div>
               <Label htmlFor="endTime">End Time</Label>
-              <Select onValueChange={(value) => setNewSlot({ ...newSlot, endTime: value })}>
-                <SelectTrigger id="endTime">
+              <Select onValueChange={handleEndTimeChange}>
+                <SelectTrigger id="endTime" disabled={!newSlot.startTime}>
                   <SelectValue placeholder="Select end time" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableTimes.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
+                  {availableTimes
+                    .filter(time => {
+                      if (!newSlot.startTime) return false;
+                      const [startHour, startMinute] = newSlot.startTime.split(":").map(Number);
+                      const [endHour, endMinute] = time.split(":").map(Number);
+                      const startMinutes = startHour * 60 + startMinute;
+                      const endMinutes = endHour * 60 + endMinute;
+                      return endMinutes > startMinutes;
+                    })
+                    .map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))
+                  }
                 </SelectContent>
               </Select>
             </div>

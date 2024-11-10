@@ -3,6 +3,7 @@ import CustomDialog from "@/components/scratch/CustomDialog";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { toast } from 'react-toastify';
  // import { useForm } from "react-hook-form";
 
 import {
@@ -28,6 +29,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function VenueOwnerDashboard() {
+  // Add loading states
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const [owner, setOwner] = useState<Owner | null>(null);
   const [venues, setVenues] = useState<Venue[]>([]);
   // const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
@@ -53,11 +58,16 @@ export default function VenueOwnerDashboard() {
 
   useEffect(() => {
     async function fetchOwnerDetails() {
+      setIsLoading(true);
+      setError(null);
       const token = sessionStorage.getItem("token");
+      
       if (!token) {
-        console.error("No token found in session storage");
+        setError("No authentication token found");
+        setIsLoading(false);
         return;
       }
+      console.log(token);
 
       try {
         const response = await fetch(
@@ -70,27 +80,38 @@ export default function VenueOwnerDashboard() {
           }
         );
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch owner details");
-        }
-
         const data = await response.json();
-        if (data.length === 0) {
-          console.error("Owner data is empty");
-          return;
+        console.log(data);
+        // Debug logs
+        console.log("Raw Owner API Response:", data);
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch owner details");
         }
 
-        setOwner(data[0]);
-        const ownerId = data[0]._id;
-        if (ownerId) {
-          await fetchVenues(ownerId, token);
-        } else {
-          console.error("Owner ID not found");
+        // Check if data has the expected structure
+        if (!data || (!Array.isArray(data) && !data.owner)) {
+          throw new Error("Invalid owner data format");
         }
+
+        // Handle both array and object responses
+        const ownerData = Array.isArray(data) ? data[0] : data.owner;
+
+        if (!ownerData || !ownerData._id) {
+          throw new Error("Owner data is missing required fields");
+        }
+
+        console.log("Processed owner data:", ownerData);
+        setOwner(ownerData);
+
+        // Fetch venues with the owner ID
+        await fetchVenues(ownerData._id, token);
       } catch (error) {
-        if (error instanceof Error) {
-          console.error("Error fetching owner details:", error.message);
-        }
+        const message = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error("Error in fetchOwnerDetails:", message);
+        setError(message);
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -106,22 +127,27 @@ export default function VenueOwnerDashboard() {
           }
         );
 
+        const data = await response.json();
+        
+        // Debug logs
+        console.log("Venues API Response:", data);
+
         if (!response.ok) {
-          throw new Error("Failed to fetch venues");
+          throw new Error(data.message || "Failed to fetch venues");
         }
 
-        const data = await response.json();
-        console.log(data);
+        if (!data.result || !Array.isArray(data.result)) {
+          throw new Error("Invalid venues data format");
+        }
+
         setVenues(data.result);
 
-        // Fetch slots for all venues
-        data.result.forEach((venue: Venue) => {
-          fetchSlots(venue._id);
-        });
+        // Fetch slots for each venue
+        await Promise.all(data.result.map((venue: Venue) => fetchSlots(venue._id)));
       } catch (error) {
-        if (error instanceof Error) {
-          console.error("Error fetching venues:", error.message);
-        }
+        const message = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error("Error in fetchVenues:", message);
+        setError(message);
       }
     }
 
@@ -181,7 +207,10 @@ async function fetchSlots(playgroundId: string) {
   }, []);
 
   interface Owner {
+    _id: string;
     name: string;
+    email: string;
+    phone?: string;
   }
 
   interface Venue {
@@ -227,10 +256,12 @@ async function fetchSlots(playgroundId: string) {
 
       const data = await response.json();
       console.log(data);
+      toast.success('Venue added successfully!');
       setIsAddVenueDialogOpen(false);
       // Optionally, refresh the venues list
       // fetchOwnerDetails();
     } catch (error) {
+      toast.error('Failed to add venue. Please try again.');
       if (error instanceof Error) {
         console.error("Error adding new venue:", error.message);
       }
@@ -265,15 +296,34 @@ async function fetchSlots(playgroundId: string) {
   
       const data = await response.json();
       console.log(data);
+      toast.success('Venue updated successfully!');
       setIsUpdateVenueDialogOpen(false);
       // Optionally, refresh the venues list
       // fetchOwnerDetails();
     } catch (error) {
+      toast.error('Failed to update venue. Please try again.');
       if (error instanceof Error) {
         console.error("Error updating venue:", error.message);
       }
     }
   };
+
+  // Add loading and error states to the return JSX
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] p-4">

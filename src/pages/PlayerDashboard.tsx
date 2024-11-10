@@ -1,31 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Calendar,
-  MapPin,
-  Users,
-  Star,
-  Clock,
-  ArrowRight,
-  Search,
-} from "lucide-react";
+import { Calendar, MapPin, Users, Clock } from "lucide-react";
 
 interface Profile {
   name: string;
   email: string;
   joinedDate: string;
   avatar?: string;
+  DOB: string;
+  phone: number;
+  userhandle: string;
 }
 
 interface Booking {
@@ -37,10 +30,87 @@ interface Booking {
   slotSize: number;
 }
 
+const calculateStats = (bookings: Booking[]) => {
+  const now = new Date();
+  const stats = {
+    totalHours: 0,
+    eventsParticipated: bookings.length,
+    uniqueVenues: new Set<string>(),
+    upcomingEvents: 0,
+  };
+
+  bookings.forEach((booking) => {
+    // Calculate hours (assuming each slot is 2 hours)
+    stats.totalHours += 2;
+
+    // Count unique venues
+    stats.uniqueVenues.add(booking.playgroundLocation);
+
+    // Count upcoming events
+    const bookingDate = new Date(booking.slotDate);
+    if (bookingDate > now) {
+      stats.upcomingEvents++;
+    }
+  });
+
+  return {
+    totalHours: stats.totalHours,
+    eventsParticipated: stats.eventsParticipated,
+    uniqueVenues: stats.uniqueVenues.size,
+    upcomingEvents: stats.upcomingEvents,
+  };
+};
+
+const getUpcomingBookings = (bookings: Booking[]) => {
+  const now = new Date();
+  return bookings
+    .filter((booking) => new Date(booking.slotDate) > now)
+    .sort((a, b) => new Date(a.slotDate).getTime() - new Date(b.slotDate).getTime())
+    .slice(0, 3); // Get next 3 upcoming events
+};
+
+// Add this improved date formatting utility
+const formatDateString = (dateString: string | undefined) => {
+  if (!dateString) return "N/A";
+  try {
+    // Handle different date formats
+    let date: Date;
+    
+    // Try parsing ISO format first
+    date = new Date(dateString);
+    
+    // If invalid, try DD-MM-YYYY format
+    if (isNaN(date.getTime())) {
+      const [day, month, year] = dateString.split(/[-/]/);
+      date = new Date(`${year}-${month}-${day}`);
+    }
+    
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(date);
+  } catch {
+    console.error('Date parsing error for:', dateString);
+    return "N/A";
+  }
+};
+
 export default function PlayerDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalHours: 0,
+    eventsParticipated: 0,
+    uniqueVenues: 0,
+    upcomingEvents: 0,
+  });
+  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +141,16 @@ export default function PlayerDashboard() {
         ]);
 
         setBookings(bookingsData);
-        setProfile(profileData);
+        setProfile(profileData[0]);
+        console.log(profileData);
+
+        // Calculate stats from bookings
+        const calculatedStats = calculateStats(bookingsData);
+        setStats(calculatedStats);
+
+        // Get upcoming bookings
+        const upcoming = getUpcomingBookings(bookingsData);
+        setUpcomingBookings(upcoming);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -82,78 +161,68 @@ export default function PlayerDashboard() {
     fetchData();
   }, []);
 
-  const recommendedVenues = [
-    {
-      id: 1,
-      name: "Green Field Stadium",
-      sport: "Soccer",
-      rating: 4.5,
-      distance: "2.5 miles",
-    },
-    {
-      id: 2,
-      name: "Central Court",
-      sport: "Tennis",
-      rating: 4.8,
-      distance: "1.8 miles",
-    },
-    {
-      id: 3,
-      name: "Aqua Center",
-      sport: "Swimming",
-      rating: 4.2,
-      distance: "3.2 miles",
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-[#F8F9FA] p-4">
       <div className="max-w-6xl mx-auto space-y-8">
-        <header className="bg-white rounded-lg shadow p-6 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage
-                src={profile?.avatar || "/placeholder.svg"}
-                alt={profile?.name || "Player"}
-              />
-              <AvatarFallback>
-                {profile?.name
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("") || "P"}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              {isLoading ? (
-                <div className="h-12 flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#FF3B30]"></div>
-                </div>
-              ) : (
-                <>
-                  <h1 className="text-2xl font-bold text-[#111827]">
-                    Welcome, {profile?.name}
-                  </h1>
-                  <p className="text-[#9CA3AF]">
-                    Player since{" "}
-                    {new Date(profile?.joinedDate || "").toLocaleDateString(
-                      "en-US",
-                      { month: "long", year: "numeric" }
-                    )}
-                  </p>
-                </>
-              )}
+        <header className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-start">
+            <div className="flex items-start space-x-6 w-full">
+              <Avatar className="h-20 w-20">
+                <AvatarImage
+                  src={profile?.avatar || "/placeholder.svg"}
+                  alt={profile?.name || "Player"}
+                />
+                <AvatarFallback>
+                  {profile?.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("") || "P"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-3">
+                {isLoading ? (
+                  <div className="h-12 flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#FF3B30]"></div>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <h1 className="text-3xl font-bold text-[#111827] mb-1">
+                        {profile?.name}
+                      </h1>
+                      <p className="text-[#FF3B30] font-medium">
+                        @{profile?.userhandle}
+                      </p>
+                    </div>
+                    <div className="flex space-x-6">
+                      <div className="space-y-1">
+                        <p className="text-sm text-[#9CA3AF]">Email</p>
+                        <p className="text-sm font-medium text-[#111827]">
+                          {profile?.email}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-[#9CA3AF]">Date of Birth</p>
+                        <p className="text-sm font-medium text-[#111827]">
+                          {formatDateString(profile?.DOB)}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-[#9CA3AF]">Member Since</p>
+                        <p className="text-sm font-medium text-[#111827]">
+                          {formatDateString(profile?.joinedDate)}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-          <Button
-            variant="outline"
-            className="border-[#000000] text-[#000000] hover:bg-[#000000] hover:text-white transition-all duration-300 ease-in-out hover:scale-105"
-          >
-            Edit Profile
-          </Button>
         </header>
 
         <div className="grid md:grid-cols-3 gap-8">
-          <Card className="md:col-span-2">
+          <Card className="md:col-span-3">
             <CardHeader>
               <CardTitle className="text-[#111827]">Your Bookings</CardTitle>
               <CardDescription className="text-[#9CA3AF]">
@@ -168,7 +237,7 @@ export default function PlayerDashboard() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF3B30]"></div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {bookings.map((booking: Booking, index: number) => (
                     <Card
                       key={index}
@@ -191,9 +260,7 @@ export default function PlayerDashboard() {
                             <div className="flex items-center space-x-2 text-[#9CA3AF]">
                               <Calendar className="h-4 w-4" />
                               <span className="text-sm">
-                                {new Date(
-                                  booking.slotDate
-                                ).toLocaleDateString()}
+                                {formatDateString(booking.slotDate)}
                               </span>
                             </div>
                             <div className="flex items-center space-x-2 text-[#9CA3AF]">
@@ -230,95 +297,95 @@ export default function PlayerDashboard() {
               )}
             </CardContent>
           </Card>
-
-          <div className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[#111827]">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <Button className="w-full bg-[#FFD60A] text-[#111827] hover:bg-[#FFD60A]/90 transition-all duration-300 ease-in-out hover:scale-105">
-                  <Calendar className="mr-2 h-4 w-4" /> Create New Event
-                </Button>
-                <Button className="w-full bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90 transition-all duration-300 ease-in-out hover:scale-105">
-                  <Search className="mr-2 h-4 w-4" /> Find Nearby Venues
-                </Button>
-                <Button className="w-full bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90 transition-all duration-300 ease-in-out hover:scale-105">
-                  <Users className="mr-2 h-4 w-4" /> Join a Team
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[#111827]">
-                  Recommended Venues
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                {recommendedVenues.map((venue) => (
-                  <div
-                    key={venue.id}
-                    className="flex justify-between items-center"
-                  >
-                    <div>
-                      <h3 className="font-semibold text-[#111827]">
-                        {venue.name}
-                      </h3>
-                      <p className="text-sm text-[#9CA3AF]">
-                        {venue.sport} • {venue.distance}
-                      </p>
-                    </div>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-[#FFD60A] mr-1" />
-                      <span className="text-[#111827]">{venue.rating}</span>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-              <CardFooter>
-                <Button
-                  variant="link"
-                  className="w-full text-[#FF3B30] hover:text-[#FF3B30]/90 transition-all duration-300 ease-in-out hover:scale-105"
-                >
-                  View All Venues <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-[#111827]">Your Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex space-x-4 overflow-x-auto pb-4">
-              {[
-                { icon: Calendar, label: "Events Attended", value: 12 },
-                { icon: Users, label: "Teams Joined", value: 3 },
-                { icon: MapPin, label: "Venues Visited", value: 8 },
-                { icon: Star, label: "Average Rating", value: "4.7" },
-                { icon: Clock, label: "Hours Played", value: 36 },
-              ].map((stat, index) => (
-                <Card
-                  key={index}
-                  className="flex-shrink-0 w-40 transition-all duration-300 ease-in-out hover:shadow-lg"
-                >
-                  <CardContent className="p-4 text-center">
-                    <stat.icon className="h-8 w-8 mx-auto mb-2 text-[#FF3B30]" />
-                    <p className="text-sm font-medium text-[#9CA3AF]">
-                      {stat.label}
-                    </p>
-                    <p className="text-2xl font-bold text-[#111827]">
-                      {stat.value}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid md:grid-cols-2 gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[#111827]">Your Activity</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: Clock, label: "Hours Played", value: stats.totalHours },
+                  {
+                    icon: Calendar,
+                    label: "Events Participated",
+                    value: stats.eventsParticipated,
+                  },
+                  { icon: MapPin, label: "Venues Visited", value: stats.uniqueVenues },
+                  {
+                    icon: Calendar,
+                    label: "Upcoming Events",
+                    value: stats.upcomingEvents,
+                  },
+                ].map((stat, index) => (
+                  <Card
+                    key={index}
+                    className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200"
+                  >
+                    <CardContent className="p-4 flex flex-col items-center justify-center">
+                      <stat.icon className="h-6 w-6 mb-2 text-[#FF3B30]" />
+                      <p className="text-sm font-medium text-[#9CA3AF] text-center mb-1">
+                        {stat.label}
+                      </p>
+                      <p className="text-xl font-bold text-[#111827]">
+                        {stat.value}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[#111827]">Upcoming Events</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {upcomingBookings.length === 0 ? (
+                  <p className="text-center text-[#9CA3AF]">No upcoming events</p>
+                ) : (
+                  upcomingBookings.map((booking, index) => (
+                    <Card
+                      key={index}
+                      className="hover:shadow-md transition-shadow duration-200"
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold text-[#111827]">
+                              {booking.playgroundName}
+                            </h3>
+                            <div className="flex items-center space-x-2 text-[#9CA3AF] mt-1">
+                              <MapPin className="h-4 w-4" />
+                              <span className="text-sm">
+                                {booking.playgroundLocation}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-[#111827]">
+                              {formatDateString(booking.slotDate)}
+                            </p>
+                            <p className="text-sm text-[#9CA3AF]">
+                              {booking.slotTime}
+                            </p>
+                          </div>
+                          <div className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
+                            {`${booking.players}/${booking.slotSize} players`}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

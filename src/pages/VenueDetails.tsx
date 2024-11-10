@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, IndianRupee, Star, Users, Clock, Calendar } from 'lucide-react'
 import { useParams } from "react-router-dom"
+// import { loadStripe } from '@stripe/stripe-js';
 
 interface Slot {
   _id: string;
@@ -16,6 +19,7 @@ interface Slot {
   players: string[];
   slotSize: number;
   playgroundName: string;
+  price: number; // Add price to Slot interface
 }
 
 interface Venue {
@@ -96,19 +100,58 @@ export default function VenueDetailPage() {
         },
       });
       if (response.ok) {
-        alert('Slot booked successfully!')
+        toast.success('Slot booked successfully!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         await fetchSlots()
       } else {
-        alert('Failed to book slot. Please try again.')
+        toast.error('Failed to book slot. Please try again.', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     } catch (error) {
       console.error('Error booking slot:', error)
-      alert('An error occurred while booking the slot.')
+      toast.error('An error occurred while booking the slot.', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   }
 
+  const handlePayment = async (slotId: string) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        toast.error('Please login to book a slot');
+        return;
+      }
+      
+      // Direct booking without payment
+      await bookSlot(slotId);
+      
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast.error('Failed to book slot. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] p-4">
+      <ToastContainer />
       <div className="max-w-4xl mx-auto space-y-8">
         <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-lg">
           <CardContent className="p-0">
@@ -172,7 +215,7 @@ export default function VenueDetailPage() {
                       </div>
                     </div>
                     <Button 
-                      onClick={() => bookSlot(slot._id)}
+                      onClick={() => handlePayment(slot._id)}
                       disabled={getRemainingSpots(slot) === 0}
                       className="bg-[#FFD60A] text-[#111827] hover:bg-[#FFD60A]/90 transition-all duration-300 ease-in-out hover:scale-105"
                     >

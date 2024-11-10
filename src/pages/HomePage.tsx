@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Calendar, MapPin, Users, Search } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-  
+ 
 export default function HomePage() {
   const navigate = useNavigate();
  
@@ -30,6 +30,7 @@ export default function HomePage() {
             <Button
               size="lg"
               className="bg-[#FF3B30] hover:bg-red-700 text-white transform transition duration-300 ease-in-out hover:scale-105"
+              onClick={() => navigate('/signup')}
             >
               Join as Player <ArrowRight className="ml-2" />
             </Button>
@@ -37,6 +38,7 @@ export default function HomePage() {
               size="lg"
               variant="outline"
               className="border-[#000000] text-[#000000] hover:bg-[#000000] hover:text-white transform transition duration-300 ease-in-out hover:scale-105"
+              onClick={() => navigate('/signup')}
             >
               List a Venue <MapPin className="ml-2" />
             </Button>
@@ -157,76 +159,14 @@ export default function HomePage() {
           <Button
             size="lg"
             className="bg-[#FFD60A] text-[#111827] hover:bg-yellow-500 transform transition duration-300 ease-in-out hover:scale-105"
+            onClick={() => navigate('/signup')}
           >
             Sign Up Now <ArrowRight className="ml-2" />
           </Button>
         </section>
       </main>
 
-      <footer className="bg-[#111827] text-white py-8">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Flash</h3>
-              <p className="text-gray-300">
-                Connecting sports enthusiasts and venues.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li>
-                  <a href="/about" className="text-gray-300 hover:text-white transition duration-300">
-                    About Us
-                  </a>
-                </li>
-                <li>
-                  <a href="/venues" className="text-gray-300 hover:text-white transition duration-300">
-                    Find Venues
-                  </a>
-                </li>
-                <li>
-                  <a href="/groups" className="text-gray-300 hover:text-white transition duration-300">
-                    Join Groups
-                  </a>
-                </li>
-                <li>
-                  <a href="/contact" className="text-gray-300 hover:text-white transition duration-300">
-                    Contact Us
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2">
-                <li>
-                  <a href="/terms" className="text-gray-300 hover:text-white transition duration-300">
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a href="/privacy" className="text-gray-300 hover:text-white transition duration-300">
-                    Privacy Policy
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Connect</h3>
-              <div className="flex space-x-4">
-                {/* Add social media icons here */}
-              </div>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-gray-700 text-center">
-            <p className="text-gray-300">
-              &copy; {new Date().getFullYear()} Flash Sports Platform. All
-              rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+       
     </div>
   );
 }

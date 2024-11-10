@@ -10,6 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Mail, Lock, AlertCircle, User, Building } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { useAuth } from '@/context/AuthContext'
+import { toast } from 'react-toastify';
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -19,6 +21,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [isOwner, setIsOwner] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -38,9 +41,18 @@ export default function LoginPage() {
         throw new Error('Invalid email or password. Please try again.')
       }
       const data = await response.json()
-      sessionStorage.setItem('token', data.token)
-      navigate('/venue-listing') // Redirect to venue listing
+      login({
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        role: isOwner ? 'venue_owner' : 'player',
+        token: data.token
+      })
+      toast.success('Login successful!');
+      // Navigate to the correct profile route
+      navigate(isOwner ? '/venue-owner-profile' : '/player-profile')
     } catch (err) {
+      toast.error('Invalid email or password. Please try again.');
       if (err instanceof Error) {
         setError(err.message)
       } else {
