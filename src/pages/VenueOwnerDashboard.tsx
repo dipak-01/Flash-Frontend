@@ -89,8 +89,7 @@ export default function VenueOwnerDashboard() {
         setIsLoading(false);
         return;
       }
-      console.log(token);
-
+ 
       try {
         const response = await fetch(
           `${import.meta.env.VITE_BACKEND_URL}/owner/profile`,
@@ -103,10 +102,8 @@ export default function VenueOwnerDashboard() {
         );
 
         const data = await response.json();
-        console.log(data);
-        // Debug logs
-        console.log("Raw Owner API Response:", data);
-
+         // Debug logs
+ 
         if (!response.ok) {
           throw new Error(data.message || "Failed to fetch owner details");
         }
@@ -123,8 +120,7 @@ export default function VenueOwnerDashboard() {
           throw new Error("Owner data is missing required fields");
         }
 
-        console.log("Processed owner data:", ownerData);
-        setOwner(ownerData);
+         setOwner(ownerData);
 
         // Fetch venues with the owner ID
         await fetchVenues(ownerData._id, token);
@@ -152,8 +148,7 @@ export default function VenueOwnerDashboard() {
         const data = await response.json();
         
         // Debug logs
-        console.log("Venues API Response:", data);
-
+ 
         if (!response.ok) {
           throw new Error(data.message || "Failed to fetch venues");
         }
@@ -197,8 +192,7 @@ async function fetchSlots(playgroundId: string) {
     }
 
     const data = await response.json();
-    console.log(data);
-
+ 
     const currentDate = new Date();
 
     // Access the bookings array from data.slots

@@ -75,8 +75,8 @@ export default function SignupPage() {
       };
 
       const response = await axios.post(url, data);
-      console.log('Registration successful:', response.data);
-      // Handle successful registration (e.g., redirect to login page)
+      console.log(response.data);
+       // Handle successful registration (e.g., redirect to login page)
     } catch (error) {
       console.error('Registration failed:', error);
       // Handle registration error

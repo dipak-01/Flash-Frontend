@@ -114,8 +114,7 @@ export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlayg
   };
 
   const handleAddSlot = async () => {
-    console.log(newSlot);
-    if (!selectedPlaygroundId) return;
+     if (!selectedPlaygroundId) return;
 
     const currentDate = new Date();
     const slotDate = new Date(newSlot.date + "T" + newSlot.startTime);
@@ -130,8 +129,7 @@ export default function CustomDialog({ isOpen, onClose, onAddSlot, selectedPlayg
       slotSize: newSlot.slotSize,
     };
     try {
-      console.log(formattedSlot);
-      const token = sessionStorage.getItem("token");
+       const token = sessionStorage.getItem("token");
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/slot/new?playgroundId=${selectedPlaygroundId}`,
         {

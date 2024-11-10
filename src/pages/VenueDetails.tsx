@@ -92,8 +92,7 @@ export default function VenueDetailPage() {
   const bookSlot = async (slotId: string) => {
     try {
       const token = sessionStorage.getItem('token');
-      console.log(slotId, token);
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/player/book?slotId=${slotId}`, {
+       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/player/book?slotId=${slotId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`

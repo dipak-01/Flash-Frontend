@@ -150,8 +150,7 @@ export default function PlayerDashboard() {
 
         setBookings(bookingsData);
         setProfile(profileData[0]);
-        console.log(profileData);
-
+ 
         // Calculate stats from bookings
         const calculatedStats = calculateStats(bookingsData);
         setStats(calculatedStats);
