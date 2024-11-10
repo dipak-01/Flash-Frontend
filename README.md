@@ -7,6 +7,7 @@ Flash is a comprehensive web-based platform designed to facilitate and enhance t
  [Presentation](https://www.canva.com/design/DAGVP9hVtkA/PWEuCrfdbsnZBA2jFLowcQ/edit?utm_content=DAGVP9hVtkA&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
  
  [Demo](https://flash-frontend-plum.vercel.app/)
+ [Figma File](https://www.figma.com/design/XOjIZQVP5G1NAcg6dQ8m1N/Flash-Design?node-id=34104-3315&t=8KbkCdvUyHCv9lHx-1)
 
 ## Purpose
 
