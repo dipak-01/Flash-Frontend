@@ -178,8 +178,8 @@ export default function PlayerDashboard() {
     <div className="min-h-screen bg-[#F8F9FA] p-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-start">
-            <div className="flex items-start space-x-6 w-full">
+          <div className="flex flex-col md:flex-row items-start">
+            <div className="flex flex-col md:flex-row items-start space-x-0 md:space-x-6 w-full">
               <Avatar className="h-20 w-20">
                 <AvatarImage 
                   src={profile?.avatar || "/placeholder-avatar.png"} 
@@ -192,7 +192,7 @@ export default function PlayerDashboard() {
                     .join("") || "P"}
                 </AvatarFallback>
               </Avatar>
-              <div className="space-y-3">
+              <div className="space-y-3 mt-4 md:mt-0">
                 {isLoading ? (
                   <div className="h-12 flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#FF3B30]"></div>
@@ -207,7 +207,7 @@ export default function PlayerDashboard() {
                         @{profile?.userhandle}
                       </p>
                     </div>
-                    <div className="flex space-x-6">
+                    <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6">
                       <div className="space-y-1">
                         <p className="text-sm text-[#9CA3AF]">Email</p>
                         <p className="text-sm font-medium text-[#111827]">
@@ -220,12 +220,7 @@ export default function PlayerDashboard() {
                           {formatDateString(profile?.DOB)}
                         </p>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-[#9CA3AF]">Member Since</p>
-                        <p className="text-sm font-medium text-[#111827]">
-                          {formatDateString(profile?.joinedDate)}
-                        </p>
-                      </div>
+                     
                     </div>
                   </>
                 )}
@@ -234,7 +229,7 @@ export default function PlayerDashboard() {
           </div>
         </header>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Adjusted the bookings section to reduce height */}
           <Card className="md:col-span-3">
             <CardHeader>
@@ -332,7 +327,7 @@ export default function PlayerDashboard() {
           </Card>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <Card>
             <CardHeader>
               <CardTitle className="text-[#111827]">Your Activity</CardTitle>
@@ -387,7 +382,7 @@ export default function PlayerDashboard() {
                       className="hover:shadow-md transition-shadow duration-200"
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0">
                           <div>
                             <h3 className="font-semibold text-[#111827]">
                               {booking.playgroundName}
@@ -399,7 +394,7 @@ export default function PlayerDashboard() {
                               </span>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-left md:text-right">
                             <p className="text-sm font-medium text-[#111827]">
                               {formatDateString(booking.slotDate)}
                             </p>

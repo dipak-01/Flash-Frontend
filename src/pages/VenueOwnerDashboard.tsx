@@ -415,38 +415,39 @@ async function fetchSlots(playgroundId: string) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] p-4">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header remains the same */}
-        <header className="bg-white rounded-lg shadow p-6 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-16 w-16">
+    <div className="min-h-screen bg-[#F8F9FA] p-2 sm:p-4">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8">
+        {/* Header */}
+        <header className="bg-white rounded-lg shadow p-3 sm:p-6 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <Avatar className="h-12 w-12 sm:h-16 sm:w-16">
               <AvatarImage src={owner?.avatar || "/placeholder-avatar.png"} alt={owner?.name || "Owner"} />
               <AvatarFallback>
                 {owner?.name?.split(" ").map((n) => n[0]).join("") || "O"}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h1 className="text-2xl font-bold text-[#111827]">Welcome, {owner?.name}</h1>
-              <p className="text-gray-600">Venue Owner since March 2022</p>
+            <div className="text-center sm:text-left">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#111827]">Welcome, {owner?.name}</h1>
+              <p className="text-sm sm:text-base text-gray-600">Venue Owner since March 2022</p>
             </div>
           </div>
-          <Button className="bg-[#FFD60A] text-[#111827] hover:bg-[#FFC107]/90" onClick={() => setIsAddVenueDialogOpen(true)}>Add New Venue</Button>
+          <Button className="w-full sm:w-auto bg-[#FFD60A] text-[#111827] hover:bg-[#FFC107]/90" onClick={() => setIsAddVenueDialogOpen(true)}>
+            Add New Venue
+          </Button>
         </header>
 
-        {/* Changed from grid to flex column */}
-        <div className="flex flex-col space-y-8">
-          {/* Bookings Card - Now full width */}
+        <div className="flex flex-col space-y-4 sm:space-y-8">
+          {/* Bookings Card */}
           <Card className="shadow-lg rounded-lg bg-white">
-            <CardHeader>
-              <CardTitle className="text-3xl font-bold text-[#111827]">Bookings</CardTitle>
-              <CardDescription className="text-lg text-[#353943]">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-2xl sm:text-3xl font-bold text-[#111827]">Bookings</CardTitle>
+              <CardDescription className="text-base sm:text-lg text-[#353943]">
                 Manage your upcoming and past bookings
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <div className="min-w-[800px]"> {/* Minimum width to ensure proper layout */}
+            <CardContent className="p-2 sm:p-6">
+              <div className="overflow-x-auto -mx-2 sm:mx-0">
+                <div className="min-w-[320px] sm:min-w-[800px]">
                   <Tabs defaultValue="upcoming" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
@@ -574,11 +575,11 @@ async function fetchSlots(playgroundId: string) {
 
          
           <Card className="shadow-lg rounded-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-2xl font-bold">Your Venues</CardTitle>
-              <div className="flex space-x-2">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+              <CardTitle className="text-xl sm:text-2xl font-bold">Your Venues</CardTitle>
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                 <Select value={venueFilter} onValueChange={setVenueFilter}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filter by sport" />
                   </SelectTrigger>
                   <SelectContent>
@@ -590,6 +591,7 @@ async function fetchSlots(playgroundId: string) {
                 </Select>
                 <Button
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
                 >
                   <Filter className="h-4 w-4 mr-2" />
@@ -598,23 +600,23 @@ async function fetchSlots(playgroundId: string) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <div className="min-w-[800px] grid grid-cols-2 gap-6">
+              <div className="overflow-x-auto -mx-2 sm:mx-0">
+                <div className="min-w-[320px] grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 p-2 sm:p-0">
                   {filteredVenues.map((venue) => (
                     <Card key={venue._id} className="transition-all duration-200 hover:shadow-lg">
                       <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col sm:flex-row justify-between items-start space-y-2 sm:space-y-0">
                           <CardTitle className="text-lg font-bold">{venue.name}</CardTitle>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-[#FF3B30] text-[#FF3B30] hover:bg-[#FF3B30]/10"
+                            className="w-full sm:w-auto border-[#FF3B30] text-[#FF3B30] hover:bg-[#FF3B30]/10"
                             onClick={() => {
                               setVenueToUpdate(venue);
                               setIsUpdateVenueDialogOpen(true);
                             }}
                           >
-                            Update Playground Details
+                            Update Details
                           </Button>
                         </div>
                       </CardHeader>
@@ -661,14 +663,13 @@ async function fetchSlots(playgroundId: string) {
           </Card>
         </div>
 
-        {/* Analytics section remains the same */}
-        <div className="space-y-8">
-          {/* Analytics Charts */}
+        {/* Analytics section */}
+        <div className="space-y-4 sm:space-y-8">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Booking Analytics</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">Booking Analytics</CardTitle>
             </CardHeader>
-            <CardContent className="h-[300px]">
+            <CardContent className="h-[250px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={analyticsData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -683,29 +684,29 @@ async function fetchSlots(playgroundId: string) {
             </CardContent>
           </Card>
 
-          {/* Calendar View */}
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Booking Calendar</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">Booking Calendar</CardTitle>
             </CardHeader>
-            <CardContent>
-              <FullCalendar
-                plugins={[dayGridPlugin]}
-                initialView="dayGridMonth"
-                events={calendarEvents}
-                height="500px"
-              />
+            <CardContent className="overflow-x-auto">
+              <div className="min-w-[320px]">
+                <FullCalendar
+                  plugins={[dayGridPlugin]}
+                  initialView="dayGridMonth"
+                  events={calendarEvents}
+                  height={window.innerWidth < 640 ? "400px" : "500px"}
+                />
+              </div>
             </CardContent>
           </Card>
 
-          {/* Analytics Overview */}
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold">Analytics Overview</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl font-bold">Analytics Overview</CardTitle>
               <CardDescription>Your venue performance at a glance</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { icon: Calendar, label: "Total Bookings", value: "156" },
                   { icon: Users, label: "Unique Customers", value: "89" },
@@ -743,7 +744,7 @@ async function fetchSlots(playgroundId: string) {
       />
 
       <Dialog open={isAddVenueDialogOpen} onOpenChange={setIsAddVenueDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Venue</DialogTitle>
           </DialogHeader>
@@ -784,7 +785,7 @@ async function fetchSlots(playgroundId: string) {
       </Dialog>
 
       <Dialog open={isUpdateVenueDialogOpen} onOpenChange={setIsUpdateVenueDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Update Venue</DialogTitle>
           </DialogHeader>
@@ -814,4 +815,5 @@ async function fetchSlots(playgroundId: string) {
     </div>
     </div>
   );
-}
+} 
+

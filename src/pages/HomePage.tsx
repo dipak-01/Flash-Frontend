@@ -27,10 +27,10 @@ export default function HomePage() {
             The all-in-one platform for sports enthusiasts to form teams, book
             venues, and connect with fellow players.
           </p>
-          <div className="flex justify-center space-x-4 mb-8">
+          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
             <Button
               size="lg"
-              className="bg-[#FF3B30] hover:bg-red-700 text-white transform transition duration-300 ease-in-out hover:scale-105"
+              className="w-full sm:w-auto bg-[#FF3B30] hover:bg-red-700 text-white transform transition duration-300 ease-in-out hover:scale-105"
               onClick={() => navigate('/signup')}
             >
               Join as Player <ArrowRight className="ml-2" />
@@ -38,7 +38,7 @@ export default function HomePage() {
             <Button
               size="lg"
               variant="outline"
-              className="border-[#000000] text-[#000000] hover:bg-[#000000] hover:text-white transform transition duration-300 ease-in-out hover:scale-105"
+              className="w-full sm:w-auto border-[#000000] text-[#000000] hover:bg-[#000000] hover:text-white transform transition duration-300 ease-in-out hover:scale-105"
               onClick={() => navigate('/signup')}
             >
               List a Venue <MapPin className="ml-2" />
@@ -49,16 +49,16 @@ export default function HomePage() {
               <CardTitle className="text-[#111827]">Find a Venue</CardTitle>
             </CardHeader>
             <CardContent>
-              <form className="flex space-x-2" onSubmit={handleSearchSubmit}>
+              <form className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2" onSubmit={handleSearchSubmit}>
                 <input
                   type="text"
                   name="search"
                   placeholder="Enter location"
-                  className="flex-1 px-3 py-2 border border-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF3B30] transition duration-300 text-[#111827] placeholder:text-[#9CA3AF] focus:bg-white"
+                  className="w-full px-3 py-2 border border-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF3B30] transition duration-300 text-[#111827] placeholder:text-[#9CA3AF] focus:bg-white"
                 />
                 <Button
                   type="submit"
-                  className="bg-[#FF3B30] hover:bg-red-700 text-white transform transition duration-300 ease-in-out hover:scale-105"
+                  className="w-full sm:w-auto bg-[#FF3B30] hover:bg-red-700 text-white transform transition duration-300 ease-in-out hover:scale-105"
                 >
                   <Search className="mr-2" /> Search
                 </Button>

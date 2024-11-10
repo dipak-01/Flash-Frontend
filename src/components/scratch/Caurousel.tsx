@@ -19,8 +19,21 @@ export default function Component() {
   const [currentIndex, setCurrentIndex] = useState(3) // Start at the first real slide
   const [isTransitioning, setIsTransitioning] = useState(false)
   const carouselRef = useRef<HTMLDivElement>(null)
+  
+  // Responsive visible tiles
+  const [visibleTiles, setVisibleTiles] = useState(3)
 
-  const visibleTiles = 3
+  // Add resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      setVisibleTiles(window.innerWidth < 768 ? 1 : 3)
+    }
+    
+    handleResize() // Initial check
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const clonedTiles = [
     ...tiles.slice(-visibleTiles), // Clone last few tiles at the start
     ...tiles,
@@ -96,9 +109,9 @@ export default function Component() {
   }, [nextSlide, prevSlide])
 
   return (
-    <section className="my-16 px-4 md:px-0" aria-label="Sports Tile Carousel">
+    <section className="my-8 md:my-16 px-4 md:px-0" aria-label="Sports Tile Carousel">
       <Card className="overflow-hidden">
-        <CardContent className="p-6">
+        <CardContent className="p-2 md:p-6">
           <div className="relative">
             <div
               ref={carouselRef}
@@ -107,18 +120,18 @@ export default function Component() {
               onTransitionEnd={handleTransitionEnd}
             >
               {clonedTiles.map((tile, index) => (
-                <div key={index} className="w-1/3 flex-shrink-0 px-2">
+                <div key={index} className={`${visibleTiles === 1 ? 'w-full' : 'w-1/3'} flex-shrink-0 px-1 md:px-2`}>
                   <Card className="overflow-hidden">
                     <CardContent className="p-0">
-                      <div className="relative h-[500px]">
+                      <div className="relative h-[200px] md:h-[500px]">
                         <img
                           src={tile.src}
                           alt={tile.alt}
                           className="object-cover w-full h-full"
                         />
                       </div>
-                      <div className="p-4">
-                        <h3 className="text-lg font-semibold">{tile.caption}</h3>
+                      <div className="p-2 md:p-4">
+                        <h3 className="text-base md:text-lg font-semibold">{tile.caption}</h3>
                       </div>
                     </CardContent>
                   </Card>
@@ -128,20 +141,20 @@ export default function Component() {
             <Button
               variant="outline"
               size="icon"
-              className="absolute top-1/2 -left-4 transform -translate-y-1/2"
+              className="absolute top-1/2 -left-2 md:-left-4 transform -translate-y-1/2 z-10"
               onClick={prevSlide}
               aria-label="Previous slide"
             >
-              <ChevronLeft className="h-6 w-6" />
+              <ChevronLeft className="h-4 w-4 md:h-6 md:w-6" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="absolute top-1/2 -right-4 transform -translate-y-1/2"
+              className="absolute top-1/2 -right-2 md:-right-4 transform -translate-y-1/2 z-10"
               onClick={nextSlide}
               aria-label="Next slide"
             >
-              <ChevronRight className="h-6 w-6" />
+              <ChevronRight className="h-4 w-4 md:h-6 md:w-6" />
             </Button>
           </div>
         </CardContent>
