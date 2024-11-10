@@ -10,6 +10,8 @@ Flash is a comprehensive web-based platform designed to facilitate and enhance t
  
  [Figma File](https://www.figma.com/design/XOjIZQVP5G1NAcg6dQ8m1N/Flash-Design?node-id=34104-3315&t=8KbkCdvUyHCv9lHx-1)
 
+ [Notion](https://lovely-roast-85e.notion.site/Group-5-SE-Lab-Assignment-01-b436895c6af64d09bdedb16939d89f0c)
+
 ## Purpose
 
 The purpose of Flash is to serve as a unified platform that enhances accessibility, community building, and convenience for both sports players and playground owners. Flash tackles the everyday challenges players face in finding dedicated teammates, discovering suitable playgrounds, and coordinating local games while providing playground owners with tools to manage their facilities, increase visibility, and simplify the booking process. By fostering personalised connections, offering robust search and filtering functionalities, and creating a dynamic marketplace for sports facilities, our project aims to energise the sports community, encouraging active participation and promoting a connected social environment.
