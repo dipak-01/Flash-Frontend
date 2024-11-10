@@ -381,21 +381,36 @@ async function fetchSlots(playgroundId: string) {
     });
   }, [venues, venueFilter, sortOrder]);
 
-  // Convert bookings to calendar events
+  // Update the calendar events formatting
   const calendarEvents = useMemo(() => {
-    const events: { title: string; date: string; backgroundColor: string; textColor: string }[] = [];
+    const events: { title: string; date: string; time: string; backgroundColor: string; borderColor: string; textColor: string; extendedProps: { time: string } }[] = [];
     for (const playgroundId in allBookings) {
       allBookings[playgroundId].upcoming.forEach(booking => {
         events.push({
-          title: `${booking.playgroundName} - ${booking.time}`,
+          title: booking.playgroundName,
           date: booking.date,
+          time: booking.time, // Add time property
           backgroundColor: '#FFD60A',
-          textColor: '#111827'
+          borderColor: '#FFB100',
+          textColor: '#111827',
+          extendedProps: {
+            time: booking.time
+          }
         });
       });
     }
     return events;
   }, [allBookings]);
+
+  // Add the renderEventContent function
+  const renderEventContent = (eventInfo: { event: { title: string; extendedProps: { time: string } } }) => {
+    return (
+      <div className="flex flex-col p-1">
+        <div className="font-semibold text-xs">{eventInfo.event.title}</div>
+        <div className="text-xs opacity-75">{eventInfo.event.extendedProps.time}</div>
+      </div>
+    );
+  };
 
   // Add loading and error states to the return JSX
   if (isLoading) {
@@ -695,6 +710,17 @@ async function fetchSlots(playgroundId: string) {
                   initialView="dayGridMonth"
                   events={calendarEvents}
                   height={window.innerWidth < 640 ? "400px" : "500px"}
+                  eventContent={renderEventContent}
+                  headerToolbar={{
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                  }}
+                  eventTimeFormat={{
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    meridiem: 'short'
+                  }}
                 />
               </div>
             </CardContent>
@@ -815,5 +841,5 @@ async function fetchSlots(playgroundId: string) {
     </div>
     </div>
   );
-} 
+}
 

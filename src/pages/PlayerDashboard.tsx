@@ -170,7 +170,8 @@ export default function PlayerDashboard() {
 
   // Convert bookings to calendar events
   const calendarEvents = bookings.map((booking) => ({
-    title: `${booking.playgroundName} - ${booking.slotTime}`,
+    title: booking.playgroundName,
+    time: booking.slotTime,
     date: booking.slotDate,
   }));
 
@@ -321,7 +322,8 @@ export default function PlayerDashboard() {
                 plugins={[dayGridPlugin]}
                 initialView="dayGridMonth"
                 events={calendarEvents}
-                height="400px" // Adjust height as needed
+                height="400px"
+                eventContent={renderEventContent}
               />
             </CardContent>
           </Card>
@@ -417,4 +419,13 @@ export default function PlayerDashboard() {
       </div>
     </div>
   );
+
+  function renderEventContent(eventInfo: { event: { title: string; extendedProps: { time: string } } }) {
+    return (
+      <div className="flex flex-col">
+        <div className="font-semibold">{eventInfo.event.title}</div>
+        <div className="text-sm text-gray-600">{eventInfo.event.extendedProps.time}</div>
+      </div>
+    )
+  }
 }

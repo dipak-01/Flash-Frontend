@@ -104,12 +104,7 @@ export default function Header() {
                 >
                   Venues
                 </Link>
-                <Link 
-                  to="/group-chat" 
-                  className="text-[#000000] hover:text-[#FF3B30] transition-colors duration-300 font-medium"
-                >
-                  Community
-                </Link>
+               
                  
               </div>
               
