@@ -274,6 +274,7 @@ export default function SignupPage() {
                       type="date" 
                       onChange={handleInputChange} 
                       required 
+                      max={new Date().toISOString().split('T')[0]}
                       className="border-[#9CA3AF] focus:border-[#FF3B30] focus:ring-[#FF3B30] transition-all duration-300"
                     />
                   </div>
